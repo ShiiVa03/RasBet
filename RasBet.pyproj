@@ -41,6 +41,9 @@
     <Folder Include="RasBet\templates\" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="RasBet\templates\login.html">
+      <SubType>Code</SubType>
+    </Content>
     <Content Include="requirements.txt" />
     <Content Include="RasBet\static\content\bootstrap.css" />
     <Content Include="RasBet\static\content\bootstrap.min.css" />
