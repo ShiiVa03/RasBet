@@ -7,7 +7,7 @@ from flask import render_template
 from RasBet import app
 
 @app.route('/')
-@app.route('/home')
+@app.route('/home/')
 def home():
     """Renders the home page."""
     return render_template(
@@ -16,7 +16,7 @@ def home():
         year=datetime.now().year,
     )
 
-@app.route('/contact')
+@app.route('/contact/')
 def contact():
     """Renders the contact page."""
     return render_template(
@@ -26,7 +26,7 @@ def contact():
         message='Your contact page.'
     )
 
-@app.route('/about')
+@app.route('/about/')
 def about():
     """Renders the about page."""
     return render_template(
@@ -36,7 +36,7 @@ def about():
         message='Your application description page.'
     )
 
-@app.route('/login')
+@app.route('/login/')
 def login():
     """Renders the login page."""
     return render_template(
