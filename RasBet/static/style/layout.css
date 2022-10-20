@@ -1,0 +1,12 @@
+.logo-image img {
+    width: 46px;
+    height: 46px;
+    overflow: hidden;
+    margin-top: -17px;
+    margin-bottom: -17px;
+}
+
+
+.nav.navbar-nav.navbar-right li a {
+    color: white;
+}

@@ -3,6 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/style/layout.css">
     <title>{{ title }} - My Flask Application</title>
     <link rel="stylesheet" type="text/css" href="/static/content/bootstrap.min.css" />
     <link rel="stylesheet" type="text/css" href="/static/content/site.css" />
@@ -11,6 +12,7 @@
 
 <body>
     <div style="background-color:red" class="navbar navbar-inverse navbar-fixed-top">
+        
         <div class="container">
             <div class="navbar-header">
                 <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
@@ -18,13 +20,18 @@
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
-                <a href="/" class="navbar-brand">RasBet</a>
+                <a href="/" class="navbar-brand">
+                    <div class="logo-image">
+                        <img src="https://media.discordapp.net/attachments/1017873426326765578/1032721216479436851/unknown.png" class="img-fluid">
+                    </div>
+                </a>
             </div>
             <div class="navbar-collapse collapse">
                 <ul class="nav navbar-nav">
-                    <li><a href="{{ url_for('login') }}">Login</a></li>
-                    <li><a href="{{ url_for('about') }}">About</a></li>
-                    <li><a href="{{ url_for('contact') }}">Contact</a></li>
+                    <li><a style="color:white" href="{{ url_for('login') }}">Futebol</a></li>
+                    <li><a style="color:white" href="{{ url_for('about') }}">Basquetbol</a></li>
+                    <li><a style="color:white" href="{{ url_for('contact') }}">Ténis</a></li>
+                    <li><a style="color:white" href="{{ url_for('contact') }}">MotoGP</a></li>
                 </ul>
                 {% include 'loginpartial.html' %}
             </div>
@@ -32,10 +39,6 @@
     </div>
     <div class="container body-content">
         {% block content %}{% endblock %}
-        <hr />
-        <footer>
-            <p>&copy; {{ year }} - My Flask Application</p>
-        </footer>
     </div>
 
     <script src="/static/scripts/jquery-1.10.2.js"></script>
