@@ -22,7 +22,7 @@ load_dotenv()
 app.secret_key = os.getenv('RASBET_SESSIONS_KEY')
 app.crypto_salt = os.getenv('RASBET_CRYPTO_SALT')
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///../../tmp/project.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///../tmp/project.db'
 db = SQLAlchemy(app)
 
 import RasBet.views as views

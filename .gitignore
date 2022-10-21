@@ -364,3 +364,6 @@ FodyWeavers.xsd
 
 # RASBET SECRET KEYS
 .env
+
+# Flask Sessions
+flask_session/
