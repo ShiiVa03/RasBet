@@ -9,7 +9,7 @@ from datetime import date, datetime
 from dateutil.relativedelta import relativedelta
 from flask import render_template, session, url_for, abort, request, redirect
 from RasBet import app, db
-from .models import User
+from .models import User, Transaction
 
 
 
@@ -50,6 +50,7 @@ def about():
 
 @app.get('/login/')
 @app.get('/register/')
+@app.get('/account_access/')
 def account_access():
     """Renders the login page."""
     return render_template(
@@ -59,17 +60,37 @@ def account_access():
         message='Your login page'
     )
 
-@app.route('/conta/')
-def account_page():
-    """Renders the contact page."""
+
+@app.get('/user/')
+def edit_account():
+    
+    user = db.first_or_404(User, session.id)
+    
+    if not user:
+        abort(404, "User not found")
+        
     return render_template(
-        'account_page.html',
-        title='Conta',
-        year=datetime.now().year,
-        message='Your account page.'
+        'account_page.hmtl',
+        balance = user.balance
     )
 
 
+@app.get('/user/transactions')
+def user_transactions():
+    
+    user = db.first_or_404(User, session.id)
+    
+    if not user:
+        abort(404, "User not found")
+    
+    transactions = db.session.execute(db.select(Transaction).filter_by(user_id = session.id)).scalars()
+    
+    return render_template(
+        'account_transactions.html',
+        transactions = transactions,
+        balance = user.balance
+    )
+    
 
 
 '''
@@ -136,3 +157,33 @@ def login():
     session['email'] = user.email
             
     return redirect(url_for('home'))
+
+@app.post('/user/')
+def edit():
+    
+    user = db.first_or_404(User, session.id)
+    
+    if not user:
+        abort(404, "User not found")
+    
+    new_name = request.form['name']
+    new_email = request.form['email']
+    if new_name:
+        user.name = new_name
+    
+    if new_email:
+        user.email = new_email
+        
+    if request.form['password']:
+        user.password = get_hashed_passwd(request.form['password'])
+    
+    
+    db.session.commit()
+
+
+@app.post('/logout/')
+def log_out():
+    session.pop(session['id'])
+    session.pop(session['name'])
+    session.pop(session['email'])
+    

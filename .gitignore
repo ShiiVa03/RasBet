@@ -367,3 +367,6 @@ FodyWeavers.xsd
 
 # Flask Sessions
 flask_session/
+
+env/
+.vscode/
