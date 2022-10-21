@@ -1,0 +1,45 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div style=" position: absolute; top: 25%; left: 20%; width: 700px; height: 400px; background-color: lightgray; border-radius: 15px">
+    <h3 style="text-align:center">Hist&oacute;rico de Transa&ccedil;&otilde;es</h3>
+    <h3 style="text-align:center; font-weight:900">Saldo: {{ balance }} &euro;</h3>
+   <div style="text-align:center">
+       <table>
+           <thead>
+               <tr>
+                   <th>Data</th>
+                   <th>Descri&ccedil;&atilde;o</th>
+                   <th>Montante</th>
+                   <th>Saldo Resultante</th>
+               </tr>
+           </thead>
+           <tbody>
+               {% for transaction in transactions %}
+               <tr>
+                   <td> {{ transaction.date }} </td>
+                   <td> {{ transaction.description }} </td>
+                   {% if transaction.value >= 0 %}
+                   <td> +{{ transaction.value }}&euro; </td>
+                   {% else %}
+                   <td> -{{ transaction.value }}&euro; </td>
+                   {% endif %}
+                   {% if transaction.balance >= 0 %}
+                   <td> +{{ transaction.balance }}&euro; </td>
+                   {% else %}
+                   <td> -{{ transaction.balance }}&euro; </td>
+                   {% endif %}
+               </tr>
+               {% endfor %}
+           </tbody>
+       </table>
+   </div>
+    
+
+    
+</div>
+
+
+
+
+{% endblock %}

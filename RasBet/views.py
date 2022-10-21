@@ -64,13 +64,13 @@ def account_access():
 @app.get('/user/')
 def edit_account():
     
-    user = db.first_or_404(User, session.id)
+    user = db.get_or_404(User, session['id'])
     
     if not user:
         abort(404, "User not found")
         
     return render_template(
-        'account_page.hmtl',
+        'account_page.html',
         balance = user.balance
     )
 
@@ -78,12 +78,12 @@ def edit_account():
 @app.get('/user/transactions')
 def user_transactions():
     
-    user = db.first_or_404(User, session.id)
+    user = db.get_or_404(User, session['id'])
     
     if not user:
         abort(404, "User not found")
     
-    transactions = db.session.execute(db.select(Transaction).filter_by(user_id = session.id)).scalars()
+    transactions = db.session.execute(db.select(Transaction).filter_by(user_id = session['id'])).scalars()
     
     return render_template(
         'account_transactions.html',
@@ -170,9 +170,11 @@ def edit():
     new_email = request.form['email']
     if new_name:
         user.name = new_name
+        session['name'] = new_name
     
     if new_email:
         user.email = new_email
+        session['email'] = new_email
         
     if request.form['password']:
         user.password = get_hashed_passwd(request.form['password'])
@@ -183,7 +185,8 @@ def edit():
 
 @app.post('/logout/')
 def log_out():
-    session.pop(session['id'])
-    session.pop(session['name'])
-    session.pop(session['email'])
+    session.pop('id')
+    session.pop('name')
+    session.pop('email')
+    return redirect(url_for('home')) 
     
