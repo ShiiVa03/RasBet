@@ -3,8 +3,12 @@ Routes and views for the flask application.
 """
 
 from datetime import datetime
-from flask import render_template
-from RasBet import app
+
+from flask import render_template,request,flash,url_for,redirect
+from RasBet import app, models,db
+from datetime import datetime
+
+
 
 @app.route('/')
 @app.route('/home/')
@@ -45,3 +49,18 @@ def login():
         year=datetime.now().year,
         message='Your login page'
     )
+    
+@app.route('/register/', methods=['POST'])
+def register():
+    email = request.form['email']
+    passwd = request.form['password']
+    birthdate = request.form['birthdate']
+    user = models.User(name = "Joaquim", email= email, passwd=passwd, birthdate=birthdate,balance=0)
+    try:
+        db.session.add(user)
+        db.session.commit()
+    except db.IntegrityError:
+        flash('Email already in use.')
+    else:
+        return redirect(url_for('login'))
+            

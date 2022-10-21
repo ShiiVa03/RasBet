@@ -16,13 +16,12 @@ class GameType(enum.Enum):
 
 
 
-
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(320), unique=True, nullable=False)
     name = db.Column(db.String(50), nullable=False)
     passwd = db.Column(db.String, nullable=False)
-    birthdate = db.Column(db.DateTime, nullable=False)
+    birthdate = db.Column(db.TEXT, nullable=False)
     balance = db.Column(db.Float, nullable=False)
 
 class Transaction(db.Model):
