@@ -21,9 +21,10 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(320), unique=True, nullable=False)
     name = db.Column(db.String(50), nullable=False)
-    passwd = db.Column(db.String, nullable=False)
-    birthdate = db.Column(db.DateTime, nullable=False)
-    balance = db.Column(db.Float, nullable=False)
+    passwd = db.Column(db.String(200), nullable=False)
+    birthdate = db.Column(db.Date, nullable=False)
+    balance = db.Column(db.Float, nullable=False, default=0)
+    
 
 class Transaction(db.Model):
     id = db.Column(db.Integer, primary_key=True)
