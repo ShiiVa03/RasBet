@@ -17,7 +17,7 @@
            <tbody>
                {% for transaction in transactions %}
                <tr>
-                   <td> {{ transaction.date }} </td>
+                   <td> {{ transaction.datetime.date().__str__() }} </td>
                    <td> {{ transaction.description }} </td>
                    {% if transaction.value >= 0 %}
                    <td> +{{ transaction.value }}&euro; </td>
