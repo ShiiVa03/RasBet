@@ -3,10 +3,11 @@ Routes and views for the flask application.
 """
 
 import regex
+import hashlib
 
-from datetime import date
+from datetime import date, datetime
 from dateutil.relativedelta import relativedelta
-from flask import render_template, session, url_for, abort
+from flask import render_template, session, url_for, abort, request, redirect
 from RasBet import app, db
 from .models import User
 
@@ -52,10 +53,20 @@ def about():
 def account_access():
     """Renders the login page."""
     return render_template(
-        'login.html',
+        'account_access.html',
         title='Login',
         year=datetime.now().year,
         message='Your login page'
+    )
+
+@app.route('/conta/')
+def account_page():
+    """Renders the contact page."""
+    return render_template(
+        'account_page.html',
+        title='Conta',
+        year=datetime.now().year,
+        message='Your account page.'
     )
 
 
@@ -85,7 +96,7 @@ def register():
     if not check_valid_email(email):
         abort(404, 'Email not valid')
 
-    birthdate = request.form['birthdate']
+    birthdate = datetime.strptime(request.form['birthdate'], "%Y-%m-%d").date()
 
     if not check_valid_birthdate(birthdate):
         abort(404, 'Birthdate doesn\'t meet legal conditions')
@@ -97,12 +108,15 @@ def register():
         passwd = get_hashed_passwd(request.form['passwd']),
         birthdate = birthdate
     )
+    session['id'] = user.id
+    session['name'] = user.name
+    session['email'] = user.email
+
     db.session.add(user)
     db.session.commit()
 
-    session['user'] = user
             
-    return redirect('/')
+    return redirect(url_for('home'))
     
 
 @app.post('/user/login')
@@ -117,6 +131,8 @@ def login():
     if user.passwd != get_hashed_passwd(request.form['passwd']):
         abort(404, "Wrong credentials")
 
-    session['user'] = user
+    session['id'] = user.id
+    session['name'] = user.name
+    session['email'] = user.email
             
-    return redirect('/')
+    return redirect(url_for('home'))

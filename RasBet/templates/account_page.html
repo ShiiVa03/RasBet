@@ -1,0 +1,11 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div>Ola {{ session['name'] }}</div>
+
+<form action="/user/logoff" method="post">
+    <button type="submit">Log off</button>
+</form>
+
+
+{% endblock %}

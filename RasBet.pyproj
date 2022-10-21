@@ -48,10 +48,13 @@
     <Content Include="RasBet\static\style\login.css">
       <SubType>Code</SubType>
     </Content>
-    <Content Include="RasBet\templates\login.html">
+    <Content Include="RasBet\templates\account_access.html">
       <SubType>Code</SubType>
     </Content>
-    <Content Include="RasBet\templates\loginpartial.html">
+    <Content Include="RasBet\templates\account_access_partial.html">
+      <SubType>Code</SubType>
+    </Content>
+    <Content Include="RasBet\templates\account_page.html">
       <SubType>Code</SubType>
     </Content>
     <Content Include="requirements.txt" />

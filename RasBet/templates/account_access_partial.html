@@ -1,17 +1,16 @@
 {% block content %}
-    {% if condition %}
+    {% if session.get('name') %}
 <form id="logoutForm" action="/logout/" method="post" class="navbar-right">
 
     <ul class="nav navbar-nav navbar-right">
-        <li><span class="navbar-brand">Bem Vindo, {{ user.username }}!</span></li>
-        <li><a href="javascript:document.getElementById('logoutForm').submit()">Log off</a></li>
+        <li><a href="{{ url_for('account_page') }}">Bem Vindo, {{ session['name'] }}</a></li>
     </ul>
 </form>
 
        {% else %}
 
 <ul class="nav navbar-nav navbar-right">
-    <li><a href="{{ url_for('login') }}">Conta</a></li>
+    <li><a href="{{ url_for('account_access') }}">Conta</a></li>
 </ul>
 
 {% endif %}

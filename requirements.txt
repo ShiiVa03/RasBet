@@ -3,3 +3,4 @@ Flask-SQLAlchemy
 Flask-Session
 python-dateutil
 python-dotenv
+regex
