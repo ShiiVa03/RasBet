@@ -2,15 +2,66 @@
 Routes and views for the flask application.
 """
 
+import json
 import regex
 import hashlib
+import requests
+
 
 from datetime import date, datetime
 from dateutil.relativedelta import relativedelta
 from flask import render_template, session, url_for, abort, request, redirect
 from RasBet import app, db
-from .models import User, Transaction
+from .models import TeamGame, User, Transaction, Game, GameType
 
+
+
+
+'''
+External API
+'''
+
+
+
+@app.before_first_request
+def before_first_request():
+    url_football = "http://ucras.di.uminho.pt/v1/games/"
+
+    response = requests.request("GET", url_football)
+
+
+    games = json.loads(response.text)
+    app.logger.info("before_first_request")
+
+    for game in games:
+        db_game = db.session.execute(db.select(Game).filter_by(api_id = game['id'])).scalar()
+        odds = game['bookmakers'][0]['markets'][0]['outcomes']
+        home_odd = [x['price'] for x in odds if x['name'] == game['homeTeam']][0]
+        away_odd = [x['price'] for x in odds if x['name'] == game['awayTeam']][0]
+        draw_odd = [x['price'] for x in odds if x['name'] == 'Draw'][0]
+
+        
+        if not db_game:
+            db_game = Game(api_id = game['id'], game_type = GameType.Football, datetime = datetime.strptime(game['commenceTime'], "%Y-%m-%dT%H:%M:%S.%fZ"))
+            
+            team_game = TeamGame(
+                game_id = game['id'], 
+                team_home = game['homeTeam'], 
+                team_away = game['awayTeam'],
+                odd_home = home_odd,
+                odd_draw = draw_odd,
+                odd_away = away_odd,
+                result = game['scores'])
+            db.session.add(db_game)
+            db.session.add(team_game)   
+        else:
+            team_game = db.session.execute(db.select(Game).filter_by(api_id = db_game.id))
+            team_game.odd_home = home_odd
+            team_game.odd_draw = draw_odd
+            team_game.odd_away = away_odd
+        
+       
+        db.session.commit()
 
 
 '''
@@ -21,10 +72,13 @@ WEB
 @app.route('/home/')
 def home():
     """Renders the home page."""
+    games = db.session.execute("SELECT * FROM team_game WHERE game_id IN (SELECT api_id FROM game WHERE date(datetime) = DATE('now'))").all()
+    
     return render_template(
         'index.html',
         title='Home Page',
         year=datetime.now().year,
+        games = games
     )
 
 @app.route('/contact/')
