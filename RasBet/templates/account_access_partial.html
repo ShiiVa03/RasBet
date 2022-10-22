@@ -1,17 +1,20 @@
 {% block content %}
-    {% if session.get('name') %}
-<form id="logoutForm" action="/logout/" method="post" class="navbar-right">
 
-    <ul class="nav navbar-nav navbar-right">
-        <li><a href="{{ url_for('edit_account') }}">Bem Vindo, {{ session['name'] }}</a></li>
-    </ul>
-</form>
+{% if session.get('name') %}
 
-       {% else %}
+        <form id="logoutForm" action="/logout/" method="post" class="navbar-right">
 
-<ul class="nav navbar-nav navbar-right">
-    <li><a href="{{ url_for('account_access') }}">Conta</a></li>
-</ul>
+            <ul class="nav navbar-nav navbar-right">
+                <li><a href="{{ url_for('edit_account') }}">Bem Vindo, {{ session['name'] }}</a></li>
+            </ul>
+        </form>
+
+{% else %}
+
+        <ul class="nav navbar-nav navbar-right">
+            <li><a href="{{ url_for('account_access') }}">Conta</a></li>
+        </ul>
 
 {% endif %}
+
 {% endblock content %}
