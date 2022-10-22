@@ -2,16 +2,45 @@
 
 {% block content %}
 
-<div style="margin-left: auto; margin-right: auto;">
+
+<div style="float: left; width:70%; height:100%">
+
     <h1 style="text-align:center">Destaques</h1>
+    <div style="overflow:auto; height:auto; width:100%">
+            {% for game in games %}
+        <div style="background-color: lightgray; margin: 20px 0;color:black">
+            <div style="height:1px"></div>
+
+            <div style="margin-left:1%;float:left; width:33%">
+                <h4 style="margin-top:1%"> {{ game.team_home }} - {{game.team_away}}</h4>
+                <h4 style="color:gray"> Hoje  </h4>
+            </div>
+            <div>
+                <button   style="margin-left:5%; margin-top:10px; width:15%">
+                    {{ game.team_home }}
+                    <p style="margin-bottom:0px"> {{ game.odd_home }} </p>
+                </button>   
+                <button id="btn"   style="margin-left: 5%; margin-top: 10px; width: 15%">
+                    Empate
+                    <p style="margin-bottom:0px"> {{ game.odd_draw }} </p>
+                </button>
+                <button id="btn"   style="margin-left: 5%; margin-top: 10px; width: 15%">
+                    {{ game.team_away }}
+                    <p style="margin-bottom:0px"> {{ game.odd_away }} </p>
+                </button>
+            </div>
+            <div style="height:5px"></div>
+        </div>
+
+            {% endfor %}
+    </div> 
 </div>
 
-<ul class="list-group">
-    <li class="list-group-item">Cras justo odio</li>
-    <li class="list-group-item">Dapibus ac facilisis in</li>
-    <li class="list-group-item">Morbi leo risus</li>
-    <li class="list-group-item">Porta ac consectetur ac</li>
-    <li class="list-group-item">Vestibulum at eros</li>
-</ul>
+<div style="margin-left:15%; float: right; width: 15%; height: 100%">
+    <h1>Teste</h1>
+</div>
+
+<script src="../static/scripts/indesx.js"></script>
+
 
 {% endblock %}
