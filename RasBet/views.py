@@ -244,7 +244,7 @@ def log_out():
     session.pop('email')
     if 'simple_bets' in session:
         session.pop('simple_bets')
-    if 'simple_bets' in session:
+    if 'simple_bets_info' in session:
         session.pop('simple_bets_info')
     return redirect(url_for('home')) 
 
@@ -284,7 +284,10 @@ def temp_bet():
     bets_list.append(user_partial_bet)
     session['simple_bets'] = bets_list
     
-    info_list.append((user_partial_bet.odd, team_name, game.id))
+    game_id=game.id
+    team_away=game.team_away
+    team_home = game.team_home
+    info_list.append((user_partial_bet.odd, team_name, team_away, game_id, team_home))
     session['simple_bets_info'] = info_list
     
     return redirect(url_for('home'))

@@ -52,15 +52,15 @@
 
 
 .btnStack {
-    background-color: white;
-    color: #000;
-    text-decoration: none;
+    background-color: red;
+    color: white;
     display: inline-block;
-    padding: 6px 12px;
+    width: 60px;
     text-align: center;
     vertical-align: middle;
     cursor: pointer;
-    border: 2px solid black;
+    border: 1px solid #ff4b2b;
+    border-radius:15px;
 }
 
 a.btnStack:hover {
