@@ -73,7 +73,6 @@ WEB
 def home():
     """Renders the home page."""
     games = db.session.execute("SELECT * FROM team_game WHERE game_id IN (SELECT api_id FROM game WHERE date(datetime) = DATE('now'))").all()
-    
     return render_template(
         'index.html',
         title='Home Page',
@@ -243,40 +242,66 @@ def log_out():
     session.pop('id')
     session.pop('name')
     session.pop('email')
+    session.pop('simple_bets')
+    session.pop('simple_bets_info')
     return redirect(url_for('home')) 
 
 @app.post('/user/temporary_bet_simple')
 def temp_bet():
-    print(request.form['odd'])
+
     if 'simple_bets' not in session:
         session['simple_bets'] = []
+    
+    if 'simple_bets_info' not in session:
+        session['simple_bets_info'] = []
         
-    if 'user_bet' not in session:
-        user_bet = UserBet(
-            user_id = session['id'],
-            is_multiple = False
-        )
     bets_list = session['simple_bets']
+    info_list = session['simple_bets_info']
+    
+    game = db.get_or_404(TeamGame, request.form['game_id'])    
+    
     team_side = request.form['bet_team']
     if team_side == "home":
         team_side = TeamSide.home
+        team_name = game.team_home
     elif team_side == "draw":
         team_side = TeamSide.draw
+        team_name = "draw"
     else:
         team_side = TeamSide.away
+        team_name = game.team_away
 
     
     user_partial_bet = UserParcialBet(
-        user_bet_id = user_bet.id,
         game_id = request.form['game_id'],
         odd = request.form['odd'],
         money = 0,
         bet_team = team_side
     )
     
-    session['userBet'] = user_bet
-    tup = (request.form['odd'], user_partial_bet.odd,request.form['game_id'])
-    bets_list.append(tup)
+    bets_list.append(user_partial_bet)
     session['simple_bets'] = bets_list
-    print(bets_list)
+    
+    info_list.append((user_partial_bet.odd, team_name))
+    session['simple_bets_info'] = info_list
+    
+    return redirect(url_for('home'))
+
+@app.post('/user/bet_multiple')
+def bet_multiple():
+    
+    user_bet = UserBet(
+        user_id = session['id'],
+        is_multiple = True
+    )
+    
+    for partial in session['simple_bets']:
+        partial.user_bet_id = user_bet.id ## TODO: change this because it doesnt work
+        partial.money = 10
+
+    db.session.add(user_bet)
+    db.session.add_all(session['simple_bets'])
+    db.session.commit()
+    session.pop('simple_bets_info')
+    
     return redirect(url_for('home'))
