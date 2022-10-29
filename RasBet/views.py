@@ -242,8 +242,10 @@ def log_out():
     session.pop('id')
     session.pop('name')
     session.pop('email')
-    session.pop('simple_bets')
-    session.pop('simple_bets_info')
+    if 'simple_bets' in session:
+        session.pop('simple_bets')
+    if 'simple_bets' in session:
+        session.pop('simple_bets_info')
     return redirect(url_for('home')) 
 
 @app.post('/user/temporary_bet_simple')
@@ -282,26 +284,40 @@ def temp_bet():
     bets_list.append(user_partial_bet)
     session['simple_bets'] = bets_list
     
-    info_list.append((user_partial_bet.odd, team_name))
+    info_list.append((user_partial_bet.odd, team_name, game.id))
     session['simple_bets_info'] = info_list
     
     return redirect(url_for('home'))
 
-@app.post('/user/bet_multiple')
-def bet_multiple():
+
+@app.post('/user/bet_simple_amount')
+def bet_simple_amout():
+    indice = request.form['indice']
+    
+    bets_list = session['simple_bets']
+    bets_list[indice] = request.form['amount']
+    
+    session['simple_bets'] = bets_list
+    
+    return redirect(url_for('home'))
+    
+@app.post('/user/bet_simple')
+def bet_simple():
     
     user_bet = UserBet(
         user_id = session['id'],
         is_multiple = True
     )
+    db.session.add(user_bet)
+    db.session.commit()
+    
     
     for partial in session['simple_bets']:
-        partial.user_bet_id = user_bet.id ## TODO: change this because it doesnt work
-        partial.money = 10
+        partial.user_bet_id = user_bet.id 
 
-    db.session.add(user_bet)
     db.session.add_all(session['simple_bets'])
     db.session.commit()
     session.pop('simple_bets_info')
+    session.pop('simple_bets')
     
     return redirect(url_for('home'))
