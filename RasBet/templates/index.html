@@ -86,7 +86,7 @@
 
     <div style="position:relative; box-shadow: 0px 2px 2px grey; height: 400px; width:100%">
         <div style="overflow:auto">
-            {% for bet in session['simple_bets'] %}
+            {% for bet in session['simple_bets_info'] %}
             <div>
                 Ola {{ bet }}
             </div>
@@ -104,7 +104,10 @@
         <p> Montante total </p>
         <p> total de ganhos </p>
         <div style="text-align:center">
+            <form action="/user/bet_multiple" method="post" style="margin-left:5%; width:30%">
+                <input type="hidden" value="" name="game_id" style="display:none" />
             <button style="border-radius: 15px; background-color: red; text-align: center; border: 1px solid #ff4b2b; color:white"> Apostar </button>
+            </form>
         </div>
     </div>
 
