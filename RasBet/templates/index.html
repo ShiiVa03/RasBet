@@ -2,7 +2,6 @@
 
 {% block content %}
 
-{% if session.get('name') %}
 <div style="float: left; width:70%; height:100%">
 
     <h1 style="text-align:center">Destaques</h1>
@@ -104,67 +103,16 @@
         <p> Montante total </p>
         <p> total de ganhos </p>
         <div style="text-align:center">
+            {% if session.get('name') %}
             <button style="border-radius: 15px; background-color: red; text-align: center; border: 1px solid #ff4b2b; color:white"> Apostar </button>
+            {% else %}
+            <a class="btnStack" href="{{ url_for('account_access') }}">Apostar</a>
+            {% endif %}
         </div>
     </div>
 
 </div>
 
-{% else %}
-
-<div style="float: left; width:100%; height:100%">
-
-    <h1 style="text-align:center">Destaques</h1>
-    <div style="margin: auto; overflow: auto; height: auto; width: 80%; height: 100%;">
-        {% for game in games %}
-        <div style="background-color: lightgray; margin: 20px 0;color:black ; height:75px">
-            <div style="height:5px"></div>
-            <div style="margin-left:1%;float:left; width:33%">
-                <!-- Trigger/Open The Modal -->
-                <div id="myBtn-{{loop.index}}" onclick="showStats('{{loop.index}}')">
-                    <h4 style="margin-top:1%"> {{ game.team_home }} - {{game.team_away}}</h4>
-                </div>
-                <h4 style="color:gray"> Hoje  </h4>
-                <!-- The Modal -->
-                <div id="myModal-{{loop.index}}" class="modal">
-
-                    <!-- Modal content -->
-                    <div class="modal-content">
-                        <div style="text-align:center">
-                            <h4 style="margin-top:1%"> {{ game.team_home }} VS {{game.team_away}}</h4>
-                            <hr>
-                            <!-- Estatisticas -->
-                            <p>Jogos</p>
-                            <p>Golos Marcados</p>
-                            <p>Golos Sofridos</p>
-                            <p>Classificacao</p>
-                        </div>
-                        <button onclick="closeStats('{{loop.index}}')">Close</button>
-                    </div>
-
-                </div>
-            </div>
-            <div>
-                <a class="btnStack" style="margin-left:5%; margin-top:10px; width:15%" href="{{ url_for('account_access') }}">
-                    {{ game.team_home }}
-                    <p style="margin-bottom:0px"> {{ game.odd_home }} </p>
-                </a>
-                <a class="btnStack" style="margin-left:5%; margin-top:10px; width:15%" href="{{ url_for('account_access') }}">
-                    Empate
-                    <p style="margin-bottom:0px"> {{ game.odd_draw }} </p>
-                </a>
-                <a class="btnStack" style="margin-left:5%; margin-top:10px; width:15%" href="{{ url_for('account_access') }}">
-                    {{ game.team_away }}
-                    <p style="margin-bottom:0px"> {{ game.odd_away }} </p>
-                </a>
-            </div>
-            <div style="height:5px"></div>
-        </div>
-        {% endfor %}
-    </div>
-</div>
-
-{% endif %}
 
 <script src="../static/scripts/indesx.js"></script>
 
