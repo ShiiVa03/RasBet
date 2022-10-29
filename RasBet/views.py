@@ -12,7 +12,7 @@ from datetime import date, datetime
 from dateutil.relativedelta import relativedelta
 from flask import render_template, session, url_for, abort, request, redirect
 from RasBet import app, db
-from .models import TeamGame, User, Transaction, Game, GameType
+from .models import TeamGame, User, Transaction, Game, GameType, UserBet, UserParcialBet, TeamSide
 
 
 
@@ -39,7 +39,6 @@ def before_first_request():
         home_odd = [x['price'] for x in odds if x['name'] == game['homeTeam']][0]
         away_odd = [x['price'] for x in odds if x['name'] == game['awayTeam']][0]
         draw_odd = [x['price'] for x in odds if x['name'] == 'Draw'][0]
-
         
         if not db_game:
             db_game = Game(api_id = game['id'], game_type = GameType.Football, datetime = datetime.strptime(game['commenceTime'], "%Y-%m-%dT%H:%M:%S.%fZ"))
@@ -51,7 +50,8 @@ def before_first_request():
                 odd_home = home_odd,
                 odd_draw = draw_odd,
                 odd_away = away_odd,
-                result = game['scores'])
+                result = game['scores']
+            )
             db.session.add(db_game)
             db.session.add(team_game)   
         else:
@@ -119,9 +119,11 @@ def account_access():
 def edit_account():
     
     user = db.get_or_404(User, session['id'])
+
     
     if not user:
         abort(404, "User not found")
+    
         
     return render_template(
         'account_page.html',
@@ -215,7 +217,7 @@ def login():
 @app.post('/user/')
 def edit():
     
-    user = db.first_or_404(User, session.id)
+    user = db.get_or_404(User, session['id'])
     
     if not user:
         abort(404, "User not found")
@@ -231,11 +233,10 @@ def edit():
         session['email'] = new_email
         
     if request.form['password']:
-        user.password = get_hashed_passwd(request.form['password'])
-    
+        user.passwd = get_hashed_passwd(request.form['password'])
     
     db.session.commit()
-
+    return redirect(url_for('edit_account'))
 
 @app.post('/logout/')
 def log_out():
@@ -243,4 +244,39 @@ def log_out():
     session.pop('name')
     session.pop('email')
     return redirect(url_for('home')) 
+
+@app.post('/user/temporary_bet_simple')
+def temp_bet():
+    print(request.form['odd'])
+    if 'simple_bets' not in session:
+        session['simple_bets'] = []
+        
+    if 'user_bet' not in session:
+        user_bet = UserBet(
+            user_id = session['id'],
+            is_multiple = False
+        )
+    bets_list = session['simple_bets']
+    team_side = request.form['bet_team']
+    if team_side == "home":
+        team_side = TeamSide.home
+    elif team_side == "draw":
+        team_side = TeamSide.draw
+    else:
+        team_side = TeamSide.away
+
     
+    user_partial_bet = UserParcialBet(
+        user_bet_id = user_bet.id,
+        game_id = request.form['game_id'],
+        odd = request.form['odd'],
+        money = 0,
+        bet_team = team_side
+    )
+    
+    session['userBet'] = user_bet
+    tup = (request.form['odd'], user_partial_bet.odd,request.form['game_id'])
+    bets_list.append(tup)
+    session['simple_bets'] = bets_list
+    print(bets_list)
+    return redirect(url_for('home'))
