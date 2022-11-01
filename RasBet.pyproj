@@ -60,6 +60,7 @@
     <Content Include="RasBet\templates\account_transactions.html">
       <SubType>Code</SubType>
     </Content>
+    <Content Include="RasBet\templates\game_1.html" />
     <Content Include="requirements.txt" />
     <Content Include="RasBet\static\content\bootstrap.css" />
     <Content Include="RasBet\static\content\bootstrap.min.css" />
