@@ -41,7 +41,11 @@ def before_first_request():
         draw_odd = [x['price'] for x in odds if x['name'] == 'Draw'][0]
         
         if not db_game:
-            db_game = Game(api_id = game['id'], game_type = GameType.Football, datetime = datetime.strptime(game['commenceTime'], "%Y-%m-%dT%H:%M:%S.%fZ"))
+            db_game = Game(
+                api_id=game['id'],
+                game_type=GameType.football,
+                datetime=datetime.strptime(game['commenceTime'], "%Y-%m-%dT%H:%M:%S.%fZ")
+            )
             
             team_game = TeamGame(
                 game_id = game['id'], 
@@ -67,6 +71,29 @@ def before_first_request():
 '''
 WEB
 '''
+
+@app.route('/games/<_type>/')
+def games(_type):
+
+    games = db.session.execute("SELECT * FROM team_game WHERE game_id IN (SELECT api_id FROM game WHERE date(datetime) = DATE('now'))").all()
+
+    try:
+        type_value = int(_type)
+        GameType(type_value)
+    except ValueError:
+        pass
+    else:
+        return render_template(f'game_{type_value}.html', games=games)
+
+    try:
+        type_value = getattr(GameType, _type.lower()).value
+    except AttributeError:
+        abort(404, "Jogo não existente")
+    else:
+        return render_template(f'game_{type_value}.html', games=games)
+
+    
+
 
 @app.route('/')
 @app.route('/home/')

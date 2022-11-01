@@ -1,0 +1,179 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+<div style="float: left; width:70%; height:100%">
+
+    <h1 style="text-align:center">Destaques</h1>
+    <div style="overflow:auto; height:auto; width:100%; height:100%">
+        {% for game in games %}
+        <div style="background-color: lightgray; margin: 20px 0;color:black ; height:75px">
+            <div style="height:5px"></div>
+            <div style="margin-left:1%;float:left; width:33%">
+                <!-- Trigger/Open The Modal -->
+                <div id="myBtn-{{loop.index}}" onclick="showStats('{{loop.index}}')">
+                    <h4 style="margin-top:1%"> {{ game.team_home }} - {{game.team_away}}</h4>
+                </div>
+                <h4 style="color:gray"> Hoje  </h4>
+                <!-- The Modal -->
+                <div id="myModal-{{loop.index}}" class="modal">
+
+                    <!-- Modal content -->
+                    <div class="modal-content">
+                        <button class="close" onclick="closeStats('{{loop.index}}')">&times;</button>
+                        <div style="text-align:center">
+                            <h4 style="margin-top:1%"> {{ game.team_home }} VS {{game.team_away}}</h4>
+                            <hr>
+                            <!-- Estatisticas -->
+                            <p>Jogos</p>
+                            <p>Golos Marcados</p>
+                            <p>Golos Sofridos</p>
+                            <p>Classificacao</p>
+                        </div>
+                        
+                    </div>
+
+                </div>
+            </div>
+            <div style="display: flex; margin-top: 5px">
+                <form action="/user/temporary_bet_simple" method="post" style="margin-left:5%; width:30%">
+                    <input type="hidden" value=" {{ game.id }}" name="game_id" style="display:none" />
+                    <input type="hidden" value=" {{ game.odd_home }}" name="odd" style="display:none" />
+                    <input type="hidden" value="home" name="bet_team" style="display:none" />
+                    <button type="submit" onclick="this.style.backgroundColor = 'red';">
+                        {{ game.team_home }}
+                        <p style="margin-bottom:0px"> {{ game.odd_home }} </p>
+                    </button>
+                </form>
+                <form action="/user/temporary_bet_simple" method="post" style="margin-left:5%; width:30%">
+                    <input type="hidden" value=" {{ game.id }}" name="game_id" style="display:none" />
+                    <input type="hidden" value=" {{ game.odd_draw }}" name="odd" style="display:none" />
+                    <input type="hidden" value="draw" name="bet_team" style="display:none" />
+                    <button type="submit" onclick="this.style.backgroundColor = 'red';">
+                        Empate
+                        <p style="margin-bottom:0px"> {{ game.odd_draw }} </p>
+                    </button>
+                </form>
+                <form action="/user/temporary_bet_simple" method="post" style="margin-left:5%; width:30%">
+                    <input type="hidden" value=" {{ game.id }}" name="game_id" style="display:none" />
+                    <input type="hidden" value=" {{ game.odd_away }}" name="odd" style="display:none" />
+                    <input type="hidden" value="away" name="bet_team" style="display:none" />
+                    <button type="submit" onclick="this.style.backgroundColor = 'red';">
+                        {{ game.team_away }}
+                        <p style="margin-bottom:0px"> {{ game.odd_away }} </p>
+                    </button>
+                </form>
+            </div>
+                
+            <div style="height:5px"></div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<div style="height:15px"></div>
+
+<div style="margin-left:10%; float: right; width: 20%; height: 100%">
+    <div style="border: 1px;padding: 10px; box-shadow: 0px 2px 2px grey; width:100%">
+        <h4 style="text-align: center; font-weight: 700">Boletim</h4>
+
+        <div style="text-align:center">
+            <button style="border-radius: 15px"> Simples </button>
+            <button style="border-radius: 15px"> M&uacute;ltipla </button>
+        </div>
+    </div>
+    <div style="height:5px"></div>
+
+    <div style="position:relative; box-shadow: 0px 2px 2px grey; height: 400px; width:100%">
+        <div style="overflow:auto; height:95%">
+            {% for bet in session['simple_bets_info'] %}
+            <div style="border: 1px solid black; margin-top:5%; ">
+                <h5>{{ bet.4 }} - {{ bet.2 }}</h5>
+                <div style="margin-left:3%">
+                    <p>Resultado: {{ bet.1 }}</p>
+                    <div style="border: 1px solid black; background-color: lightgrey; width:50px; text-align:center">
+                    Cota {{ bet.0 }}
+                    </div>
+                </div>
+                
+            </div>
+            {% endfor %}
+        </div>
+
+        <div style="position:absolute; bottom:0; width:100%; background-color:lightgray">
+            Montante:
+        </div>
+    </div>
+
+    <div style="height:15px"></div>
+
+    <div style="border: 1px;padding: 10px; box-shadow: 0px 2px 2px grey; width:100%">
+        <p> Montante total </p>
+        <p> total de ganhos </p>
+        <div style="text-align:center">
+            {% if session.get('name') %}
+            <button id="apostarBtn" style="border-radius: 15px; background-color: red; text-align: center; border: 1px solid #ff4b2b; color:white"> Apostar </button>
+            <!-- The Modal -->
+            <div id="placeBet" class="modal">
+
+                <!-- Modal content -->
+                <div class="modal-content" style="height:400px">
+                    
+                    <h1 style="text-align:center">Pagamento</h1>
+                    <div style="margin-top:10%">
+                        <div style="float:left">
+                            <h4>M&eacute;todo de pagamento</h4>
+                        </div>
+                        <div>
+                            <input type="image" style="height: 100px; border: 1px solid black; margin-left: 0px" src="https://media.discordapp.net/attachments/1036028589369466990/1036028591231729684/unknown.png?width=344&height=406" />
+                            <input type="image" style="height: 100px; border: 1px solid black; margin-left: 4px " src="https://media.discordapp.net/attachments/1036028589369466990/1036028822484697118/unknown.png" />
+                            <input type="image" style="height: 100px; border: 1px solid black; margin-left: 4px " src="https://media.discordapp.net/attachments/1036028589369466990/1036029041494478859/unknown.png?width=896&height=290" />
+                        </div>
+                        
+                    </div>
+                    <button style="float:left; background:red; color:white" onclick="cancelBet()">Cancelar</button>
+                    <button style="float:right; background-color:forestgreen">Free!</button>
+                </div>
+
+            </div>
+            {% else %}
+            <a class="btnStack" href="{{ url_for('account_access') }}">Apostar</a>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+
+
+<script src="../static/scripts/indesx.js"></script>
+
+<script>
+    // Get the modal
+    var bet = document.getElementById("placeBet");
+
+    var btn = document.getElementById("apostarBtn");
+
+    // When the user clicks the button, open the modal
+    function showStats(id) {
+        var modal = document.getElementById(`myModal-${id}`);
+        modal.style.display = "block";
+    }
+
+    btn.onclick = function () {
+        bet.style.display = "block";
+    }
+
+    // When the user clicks on <span> (x), close the modal
+    function closeStats(id) {
+        var modal = document.getElementById(`myModal-${id}`);
+        modal.style.display = "none";
+    }
+
+    function cancelBet() {
+        bet.style.display = "none";
+    }
+
+</script>
+
+
+    {% endblock %}

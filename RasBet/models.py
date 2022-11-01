@@ -9,10 +9,10 @@ class TeamSide(enum.Enum):
     away = 3
 
 class GameType(enum.Enum):
-    Football = 1
-    Tennis = 2
-    Basketball = 3
-    MotoGP = 4
+    football = 1
+    tennis = 2
+    basketball = 3
+    motogp = 4
 
 
 
