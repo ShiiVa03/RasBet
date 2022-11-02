@@ -22,7 +22,6 @@ External API
 '''
 
 
-
 @app.before_first_request
 def before_first_request():
     url_football = "http://ucras.di.uminho.pt/v1/games/"
@@ -74,23 +73,25 @@ WEB
 
 @app.route('/games/<_type>/')
 def games(_type):
-
-    games = db.session.execute("SELECT * FROM team_game WHERE game_id IN (SELECT api_id FROM game WHERE date(datetime) = DATE('now'))").all()
+    game_type = None
 
     try:
-        type_value = int(_type)
-        GameType(type_value)
+        enum_game_type = GameType(int(_type))
     except ValueError:
-        pass
-    else:
-        return render_template(f'game_{type_value}.html', games=games)
+        try:
+            enum_game_type = GameType[_type.lower()]
+        except KeyError:
+            abort(404, "Jogo não existente")
 
-    try:
-        type_value = getattr(GameType, _type.lower()).value
-    except AttributeError:
-        abort(404, "Jogo não existente")
-    else:
-        return render_template(f'game_{type_value}.html', games=games)
+    game_type = enum_game_type.value
+    _games = db.session.execute(
+        f"SELECT * FROM {'no_' if not game_type.is_team_game else ''}team_game WHERE game_id IN (SELECT api_id FROM game WHERE game_type='{enum_game_type.name}')"
+    ).all()
+
+    games = {row[0]:row for row in _games}
+    print(games)
+
+    return render_template(f'game_{game_type.value}.html', games=games)
 
     
 
@@ -99,7 +100,7 @@ def games(_type):
 @app.route('/home/')
 def home():
     """Renders the home page."""
-    games = db.session.execute("SELECT * FROM team_game WHERE game_id IN (SELECT api_id FROM game WHERE date(datetime) = DATE('now'))").all()
+    games = db.session.execute("SELECT * FROM team_game WHERE game_id IN (SELECT api_id FROM game WHERE date(datetime)=DATE('now'))").all()
     return render_template(
         'index.html',
         title='Home Page',
@@ -214,6 +215,7 @@ def register():
     session['id'] = user.id
     session['name'] = user.name
     session['email'] = user.email
+    session['tmp_bets'] = TmpBets()
 
     db.session.add(user)
     db.session.commit()
@@ -237,6 +239,7 @@ def login():
     session['id'] = user.id
     session['name'] = user.name
     session['email'] = user.email
+    session['tmp_bets'] = TmpBets()
             
     return redirect(url_for('home'))
 
@@ -269,23 +272,13 @@ def log_out():
     session.pop('id')
     session.pop('name')
     session.pop('email')
-    if 'simple_bets' in session:
-        session.pop('simple_bets')
-    if 'simple_bets_info' in session:
-        session.pop('simple_bets_info')
+    session.pop('tmp_bets')
     return redirect(url_for('home')) 
 
-@app.post('/user/temporary_bet_simple')
-def temp_bet():
+@app.post('/bet/simple/tmp/add/')
+def add_tmp_simple_bet():
 
-    if 'simple_bets' not in session:
-        session['simple_bets'] = []
-    
-    if 'simple_bets_info' not in session:
-        session['simple_bets_info'] = []
-        
-    bets_list = session['simple_bets']
-    info_list = session['simple_bets_info']
+    tmp_bets = session['tmp_bets']
     
     game = db.get_or_404(TeamGame, request.form['game_id'])    
     
@@ -308,46 +301,102 @@ def temp_bet():
         bet_team = team_side
     )
     
-    bets_list.append(user_partial_bet)
-    session['simple_bets'] = bets_list
-    
-    game_id=game.id
-    team_away=game.team_away
-    team_home = game.team_home
-    info_list.append((user_partial_bet.odd, team_name, team_away, game_id, team_home))
-    session['simple_bets_info'] = info_list
-    
-    return redirect(url_for('home'))
+    tmp_bets.add(user_partial_bet)
+    redirect(request.referrer)
 
 
-@app.post('/user/bet_simple_amount')
-def bet_simple_amout():
-    indice = request.form['indice']
+@app.post('/bet/tmp/set/')
+def set_tmp_bet():
+    index = request.form['index']
+    amount = request.form['amount']
     
-    bets_list = session['simple_bets']
-    bets_list[indice] = request.form['amount']
+    session['tmp_bets'].set_amount(index, amount)
+
+    redirect(request.referrer)
+
+@app.post('/bet/tmp/del/')
+def del_tmp_bet():
+    index = request.form['index']
     
-    session['simple_bets'] = bets_list
+    session['tmp_bets'].pop(index)
+    redirect(request.referrer)
+
     
-    return redirect(url_for('home'))
-    
-@app.post('/user/bet_simple')
+@app.post('/bet/create')
 def bet_simple():
+    tmp_bets = session['tmp_bets']
     
     user_bet = UserBet(
         user_id = session['id'],
-        is_multiple = True
+        is_multiple = tmp_bets.is_multiple_selected
     )
     db.session.add(user_bet)
     db.session.commit()
     
     
-    for partial in session['simple_bets']:
-        partial.user_bet_id = user_bet.id 
-
-    db.session.add_all(session['simple_bets'])
+    tmp_bets.flush(user_bet.id)
     db.session.commit()
-    session.pop('simple_bets_info')
-    session.pop('simple_bets')
-    
-    return redirect(url_for('home'))
+    redirect(request.referrer)
+
+
+
+class TmpBets:
+    def __init__(self):
+        self.simple = []
+        self.multiple = []
+        is_multiple_selected = False
+
+    def add(bet):
+        if is_multiple_selected:
+            if any(bet.game_id == cached_bet.game_id for cached_bet in self.multiple):
+                raise Exception('Multiple bet must be unique per game')
+
+            self.multiple.append(bet)
+        else:
+            self.simple.append(bet)
+
+
+
+    def pop(idx):
+        if is_multiple_selected:
+            self.multiple.pop(idx)
+        else:
+            self.simple.pop(idx)
+            
+
+    def set_amount(idx, amount):
+        if is_multiple_selected:
+            for bet in self.multiple:
+                bet.amount = amount
+        else:
+            self.simple[idx].amount = amount
+        
+
+    def flush(_id):
+        if is_multiple_selected:
+            for bet in self.multiple:
+                bet.user_bet_id = _id
+
+            db.session.add_all(self.multiple)
+            self.multiple = []
+        else:  
+            for bet in self.simple:
+                bet.user_bet_id = _id
+
+            db.session.add_all(self.simple)
+            self.simple = []
+
+
+    def select_simple():
+        if not is_multiple_selected:
+            raise Exception('Simple bet is already selected')
+
+        is_multiple_selected = False
+
+    def select_multiple():
+        if is_multiple_selected:
+            raise Exception('Multiple bet is already selected')
+
+        is_multiple_selected = True
+
+        

@@ -2,6 +2,18 @@ import enum
 
 from RasBet import app, db
 
+class MetaInfoGame:
+    def __init__(self, value, name, is_team_game):
+        self.value = value
+        self.name = name
+        self.is_team_game = is_team_game
+
+    def __int__(self):
+        return self.value
+
+    def __repr__(self):
+        return self.name
+
 
 class TeamSide(enum.Enum):
     home = 1
@@ -9,10 +21,10 @@ class TeamSide(enum.Enum):
     away = 3
 
 class GameType(enum.Enum):
-    football = 1
-    tennis = 2
-    basketball = 3
-    motogp = 4
+    football = MetaInfoGame(1, "Football", True)
+    tennis = MetaInfoGame(2, "Tennis", False)
+    basketball = MetaInfoGame(3, "BasketBall", True)
+    motogp = MetaInfoGame(4, "MotoGP", False)
 
 
 
