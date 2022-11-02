@@ -339,6 +339,18 @@ def bet_simple():
     redirect(request.referrer)
 
 
+@app.post('/bet/tmp/change_context')
+def change_context_tmp_bet():
+
+    if request.form['multiple']:
+        session['tmp_bets'].select_multiple()
+    else:
+        session['tmp_bets'].select_simple()
+
+    redirect(request.referrer)
+
+    
+
 
 class TmpBets:
     def __init__(self):
