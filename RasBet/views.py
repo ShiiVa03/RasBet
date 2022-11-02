@@ -275,7 +275,7 @@ def log_out():
     session.pop('tmp_bets')
     return redirect(url_for('home')) 
 
-@app.post('/bet/simple/tmp/add/')
+@app.post('/bet/tmp/add/')
 def add_tmp_simple_bet():
 
     tmp_bets = session['tmp_bets']
