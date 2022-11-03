@@ -108,16 +108,22 @@
         <div style="overflow:auto; height:95%">
             <!-- Lista de bets simples tmp -->
             {% for (team_home, team_away), result, bet in session["tmp_bets"].get_bet_team_game_info(games) %}
-            <div style="border: 1px solid black; margin-top:5%; ">
+            <div style="border: 1px solid black; margin-top:5%; height:120px ">
                 <h5>{{ team_home }} - {{ team_away }}</h5>
                 <div style="margin-left:3%">
                     <p>Resultado: {{ result }}</p>
                 </div>
-                <div style="margin-left:5%; width:90% ; height: 30px">
-                    <div style="float:left;border: 1px solid black; background-color: lightgrey; width:50px; text-align:center">
+                <div style="width:90% ; height: 30px">
+                    <div style="float:left; margin-left: 5%; border: 1px solid black; background-color: lightgrey; width: 50px; text-align: center">
                         Cota {{ bet.odd }}
                     </div>
-                    <div style=" float:right">
+                    {% if not session['tmp_bets'].is_multiple_selected %}
+                    <form action="/bet/tmp/set/" method="post" style="margin-left: 5%">
+                        <input type="hidden" value="{{ loop.index - 1 }}" name="index"/>
+                        <input type="text" placeholder=" {{ bet.money  }} &euro;" name="amount" style="width: 50%; margin-left:5%" />
+                    </form>
+                    {% endif %}
+                    <div style=" margin-left: 5%; float:right ">
                         <form action="/bet/tmp/del/" method="post" style="margin-left:5%">
                             <input type="hidden" value={{ loop.index - 1 }} name="index" style="display:none" />
                             <button type="submit" style="background-color:red">
@@ -131,15 +137,33 @@
         </div>
 
         <div style="position:absolute; bottom:0; width:100%; background-color:lightgray">
+            {% if session['tmp_bets'].is_multiple_selected %}
             Montante:
+            <form action="/bet/tmp/set/" method="post">
+                {% if session["tmp_bets"].get_bet_team_game_info(games).__len__() > 0 %}
+                <input type="text" placeholder=" {{ session["tmp_bets"].multiple[0].money  }}" name="amount" />
+                {% else %}
+                <input type="text" placeholder=" 0.0 " name="amount" />
+                {% endif %}
+            </form>
+            {% endif %}
         </div>
     </div>
 
     <div style="height:15px"></div>
 
     <div style="border: 1px;padding: 10px; box-shadow: 0px 2px 2px grey; width:100%">
-        <p> Montante total </p>
-        <p> total de ganhos </p>
+        {% if session['tmp_bets'].is_multiple_selected %}
+        {% if session["tmp_bets"].get_bet_team_game_info(games).__len__() > 0 %}
+        <p> Montante total {{ session["tmp_bets"].multiple[0].money  }}</p>
+        {% else %}
+        <p> Montante total 0.0</p>
+        {% endif %}
+        <p> Total de ganhos </p> <!--Calcular o total de possiveis ganhos-->
+        {% else %}
+        <p> Montante total </p> <!--Calcular Montante de todas as bets simples-->
+        <p> Total de ganhos </p> <!--Calcular o total de possiveis ganhos-->
+        {% endif %}
         <div style="text-align:center">
             {% if session.get('name') %}
             <button id="apostarBtn" style="border-radius: 15px; background-color: red; text-align: center; border: 1px solid #ff4b2b; color:white"> Apostar </button>
@@ -162,7 +186,10 @@
 
                     </div>
                     <button style="float:left; background:red; color:white" onclick="cancelBet()">Cancelar</button>
-                    <button style="float:right; background-color:forestgreen">Free!</button>
+                    <form action="/bet/create/" method="post">
+                        <button type="submit" style="float:right; background-color:forestgreen">Free!</button>
+                    </form>
+
                 </div>
 
             </div>
@@ -178,6 +205,7 @@
 <script src="../static/scripts/indesx.js"></script>
 
 <script>
+
     // Get the modal
     var bet = document.getElementById("placeBet");
 

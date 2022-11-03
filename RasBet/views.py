@@ -327,8 +327,11 @@ def add_tmp_simple_bet():
 
 @app.post('/bet/tmp/set/')
 def set_tmp_bet():
-    index = request.form.get('index', None)
-    amount = request.form['amount']
+    _index = request.form.get('index', None)
+    amount = float(request.form['amount'].replace(",","."))
+    print(amount)
+    index = _index and int(_index)
+    print(index)
     
     session['tmp_bets'].set_amount(index, amount)
 
@@ -426,9 +429,9 @@ class TmpBets:
     def set_amount(self, idx, amount):
         if self.is_multiple_selected:
             for bet in self.multiple:
-                bet.amount = amount
+                bet.money = amount
         else:
-            self.simple[idx].amount = amount
+            self.simple[idx].money = amount
         
 
     def flush(self, _id):
