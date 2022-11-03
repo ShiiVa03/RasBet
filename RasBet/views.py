@@ -85,11 +85,10 @@ def games(_type):
 
     game_type = enum_game_type.value
     _games = db.session.execute(
-        f"SELECT * FROM {'no_' if not game_type.is_team_game else ''}team_game WHERE game_id IN (SELECT api_id FROM game WHERE game_type='{enum_game_type.name}')"
+        f"SELECT game_id,* FROM {'no_' if not game_type.is_team_game else ''}team_game WHERE game_id IN (SELECT api_id FROM game WHERE game_type='{enum_game_type.name}')"
     ).all()
 
-    games = {row[0]:row for row in _games}
-    print(games)
+    games = {row[0]:row[1:] for row in _games}
 
     return render_template(f'game_{game_type.value}.html', games=games)
 
@@ -360,6 +359,28 @@ class TmpBets:
         self.simple = []
         self.multiple = []
         self.is_multiple_selected = False
+
+
+    def get_bet_game_info(idx, games):
+        bets = self.multiple if self.is_multiple_selected else self.simple
+        bet = bets[idx]
+
+        game = games[bet.game_id]
+
+        if isinstance(game, TeamGame):
+            value_enum = bet.bet_team
+            print(value_enum, TeamSide.home)
+            if value_enum == TeamSide.home:
+                value = game.team_home
+            elif value_enum == TeamSide.away:
+                value = game.team_away
+            else:
+                value = "Empate"
+                
+        else:
+            value = bet.bet_no_team
+        
+        return ((game.team_home, game.team_away), value)
 
 
     def add(self, bet):
