@@ -295,7 +295,7 @@ def add_tmp_simple_bet():
 
     tmp_bets = session['tmp_bets']
     
-    game = db.get_or_404(TeamGame, request.form['game_id'])    
+    game = db.get_or_404(TeamGame, int(request.form['game_id']))   
     
     team_side = request.form['bet_team']
     if team_side == "home":
@@ -310,7 +310,7 @@ def add_tmp_simple_bet():
 
     
     user_partial_bet = UserParcialBet(
-        game_id = request.form['game_id'],
+        game_id = int(request.form['game_id']),
         odd = request.form['odd'],
         money = 0,
         bet_team = team_side
@@ -333,7 +333,7 @@ def set_tmp_bet():
 @app.post('/bet/tmp/del/')
 def del_tmp_bet():
     index = int(request.form['index'])
-    
+    print(index)
     session['tmp_bets'].pop(index)
     return redirect(request.referrer)
 
@@ -357,10 +357,11 @@ def bet_simple():
 
 @app.post('/bet/tmp/change_context')
 def change_context_tmp_bet():
-
-    if request.form['multiple']:
+    
+    if bool(int(request.form['multiple'])):
         session['tmp_bets'].select_multiple()
     else:
+        
         session['tmp_bets'].select_simple()
 
     return redirect(request.referrer)
@@ -375,28 +376,27 @@ class TmpBets:
         self.is_multiple_selected = False
 
 
-    def get_bet_team_game_info(bet, games):
+    def get_bet_team_game_info(self, games):
         bets = self.multiple if self.is_multiple_selected else self.simple
         results = []
+        
         
         for bet in bets:
             
             game = games[bet.game_id]
-
-            if not isinstance(game, TeamGame):
-                raise Exception("Bet is not from a team game")
+            
 
             
             value_enum = bet.bet_team
 
             if value_enum == TeamSide.home:
-                value = game.team_home
+                value = game[2]
             elif value_enum == TeamSide.away:
-                value = game.team_away
+                value = game[3]
             else:
                 value = "Empate"
             
-            results.append((game.team_home, game.team_away), value, bet)
+            results.append(((game[2], game[3]), value, bet))
 
         return results
 
@@ -446,7 +446,7 @@ class TmpBets:
         if not self.is_multiple_selected:
             raise Exception('Simple bet is already selected')
 
-        is_multiple_selected = False
+        self.is_multiple_selected = False
 
     def select_multiple(self):
         if self.is_multiple_selected:
