@@ -48,6 +48,18 @@ def before_first_request():
             db.session.add(db_game)
             db.session.commit()
 
+            if game['scores']:
+                home_result, away_result = list(map(int, game['scores'].split('x')))
+
+                if home_result > away_result:
+                    result = TeamSide.home
+                elif home_result < away_result:
+                    result = TeamSide.away
+                else:
+                    result = TeamSide.draw
+            else:
+                result = TeamSide.undefined
+
             team_game = TeamGame(
                 game_id = db_game.id, 
                 team_home = game['homeTeam'], 
@@ -55,7 +67,7 @@ def before_first_request():
                 odd_home = home_odd,
                 odd_draw = draw_odd,
                 odd_away = away_odd,
-                result = game['scores']
+                result = result
             )
             
             db.session.add(team_game)
@@ -87,10 +99,13 @@ def games(_type):
 
     game_type = enum_game_type.value
     _games = db.session.execute(
-        f"SELECT game_id,* FROM {'no_' if not game_type.is_team_game else ''}team_game WHERE game_id IN (SELECT id FROM game WHERE game_type='{enum_game_type.name}')"
+        f"SELECT * FROM {'no_' if not game_type.is_team_game else ''}team_game WHERE game_id IN (SELECT id FROM game WHERE game_type='{enum_game_type.name}')"
     ).all()
 
-    games = {row[0]:row[1:] for row in _games}
+    games = {row.game_id:row for row in _games}
+
+    if 'tmp_bets' not in session:
+        session['tmp_bets'] = TmpBets()
 
     return render_template(f'game_{game_type.value}.html', games=games)
 
@@ -277,11 +292,7 @@ def log_out():
 @app.post('/bet/tmp/add/')
 def add_tmp_simple_bet():
 
-    try:
-        tmp_bets = session['tmp_bets']
-    except KeyError:
-        tmp_bets = TmpBets()
-        session['tmp_bets'] = tmp_bets
+    tmp_bets = session['tmp_bets']
     
     game = db.get_or_404(TeamGame, request.form['game_id'])    
     
@@ -316,14 +327,14 @@ def set_tmp_bet():
     
     session['tmp_bets'].set_amount(index, amount)
 
-    redirect(request.referrer)
+    return redirect(request.referrer)
 
 @app.post('/bet/tmp/del/')
 def del_tmp_bet():
-    index = request.form['index']
+    index = int(request.form['index'])
     
     session['tmp_bets'].pop(index)
-    redirect(request.referrer)
+    return redirect(request.referrer)
 
     
 @app.post('/bet/create/')
@@ -340,7 +351,7 @@ def bet_simple():
     
     tmp_bets.flush(user_bet.id)
     db.session.commit()
-    redirect(request.referrer)
+    return redirect(request.referrer)
 
 
 @app.post('/bet/tmp/change_context')
@@ -351,7 +362,7 @@ def change_context_tmp_bet():
     else:
         session['tmp_bets'].select_simple()
 
-    redirect(request.referrer)
+    return redirect(request.referrer)
 
     
 

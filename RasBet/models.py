@@ -16,6 +16,7 @@ class MetaInfoGame:
 
 
 class TeamSide(enum.Enum):
+    undefined = 0
     home = 1
     draw = 2
     away = 3
