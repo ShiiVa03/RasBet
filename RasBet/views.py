@@ -118,6 +118,10 @@ def games(_type):
 def home():
     """Renders the home page."""
     games = db.session.execute("SELECT * FROM team_game WHERE game_id IN (SELECT api_id FROM game WHERE date(datetime)=DATE('now'))").all()
+
+    if 'tmp_bets' not in session:
+        session['tmp_bets'] = TmpBets()
+
     return render_template(
         'index.html',
         title='Home Page',
