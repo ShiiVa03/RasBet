@@ -84,8 +84,19 @@
         <h4 style="text-align: center; font-weight: 700">Boletim</h4>
 
         <div style="text-align:center">
-            <button style="border-radius: 15px"> Simples </button>
-            <button style="border-radius: 15px"> M&uacute;ltipla </button>
+            <!-- if multiple bet is selected -->
+            {% if session['tmp_bets'].is_multiple_selected %}
+            <form action="/bet/tmp/change_context" method="post">
+                <button type="submit" style="border-radius: 15px"> Simples </button>
+            </form>
+            <button style="border-radius: 15px; background-color:black;color:white"> M&uacute;ltipla </button>
+            {% else %}
+            <button style="border-radius: 15px;background-color:black;color:white"> Simples </button>
+            <form action="/bet/tmp/change_context" method="post">
+                <button type="submit" style="border-radius: 15px"> M&uacute;ltipla </button>
+            </form>
+            
+            {% endif %}
         </div>
     </div>
 
@@ -99,11 +110,20 @@
                 <h5>{{ bet.4 }} - {{ bet.2 }}</h5>
                 <div style="margin-left:3%">
                     <p>Resultado: {{ bet.1 }}</p>
-                    <div style="border: 1px solid black; background-color: lightgrey; width:50px; text-align:center">
+                </div>
+                <div style="margin-left:5%; width:90% ; height: 30px">
+                    <div style="float:left;border: 1px solid black; background-color: lightgrey; width:50px; text-align:center">
                         Cota {{ bet.0 }}
                     </div>
+                    <div style=" float:right">
+                        <form action="/bet/tmp/del/" method="post" style="margin-left:5%">
+                            <input type="hidden" value={{ loop.index }} name="index" style="display:none" />
+                            <button type="submit" style="background-color:red">
+                                &times;
+                            </button>
+                        </form>
+                    </div>  
                 </div>
-
             </div>
             {% endfor %}
         </div>

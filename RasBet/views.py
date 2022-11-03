@@ -2,6 +2,7 @@
 Routes and views for the flask application.
 """
 
+from ast import Return
 import json
 import regex
 import hashlib
@@ -320,10 +321,10 @@ def set_tmp_bet():
 
 @app.post('/bet/tmp/del/')
 def del_tmp_bet():
-    index = request.form['index']
+    index = int(request.form['index'])
     
     session['tmp_bets'].pop(index)
-    redirect(request.referrer)
+    return redirect(request.referrer)
 
     
 @app.post('/bet/create/')
