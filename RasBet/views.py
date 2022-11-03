@@ -214,8 +214,7 @@ def register():
     )
     session['id'] = user.id
     session['name'] = user.name
-    session['email'] = user.email
-    session['tmp_bets'] = TmpBets()
+    session['email'] = user.email   
 
     db.session.add(user)
     db.session.commit()
@@ -239,7 +238,6 @@ def login():
     session['id'] = user.id
     session['name'] = user.name
     session['email'] = user.email
-    session['tmp_bets'] = TmpBets()
             
     return redirect(url_for('home'))
 
@@ -278,7 +276,11 @@ def log_out():
 @app.post('/bet/tmp/add/')
 def add_tmp_simple_bet():
 
-    tmp_bets = session['tmp_bets']
+    try:
+        tmp_bets = session['tmp_bets']
+    except KeyError:
+        tmp_bets = TmpBets()
+        session['tmp_bets'] = tmp_bets
     
     game = db.get_or_404(TeamGame, request.form['game_id'])    
     
@@ -302,7 +304,8 @@ def add_tmp_simple_bet():
     )
     
     tmp_bets.add(user_partial_bet)
-    redirect(request.referrer)
+    return redirect(request.referrer)
+    
 
 
 @app.post('/bet/tmp/set/')
@@ -322,7 +325,7 @@ def del_tmp_bet():
     redirect(request.referrer)
 
     
-@app.post('/bet/create')
+@app.post('/bet/create/')
 def bet_simple():
     tmp_bets = session['tmp_bets']
     
@@ -356,10 +359,11 @@ class TmpBets:
     def __init__(self):
         self.simple = []
         self.multiple = []
-        is_multiple_selected = False
+        self.is_multiple_selected = False
 
-    def add(bet):
-        if is_multiple_selected:
+
+    def add(self, bet):
+        if self.is_multiple_selected:
             if any(bet.game_id == cached_bet.game_id for cached_bet in self.multiple):
                 raise Exception('Multiple bet must be unique per game')
 
@@ -369,23 +373,23 @@ class TmpBets:
 
 
 
-    def pop(idx):
-        if is_multiple_selected:
+    def pop(self, idx):
+        if self.is_multiple_selected:
             self.multiple.pop(idx)
         else:
             self.simple.pop(idx)
             
 
-    def set_amount(idx, amount):
-        if is_multiple_selected:
+    def set_amount(self, idx, amount):
+        if self.is_multiple_selected:
             for bet in self.multiple:
                 bet.amount = amount
         else:
             self.simple[idx].amount = amount
         
 
-    def flush(_id):
-        if is_multiple_selected:
+    def flush(self, _id):
+        if self.is_multiple_selected:
             for bet in self.multiple:
                 bet.user_bet_id = _id
 
@@ -399,16 +403,16 @@ class TmpBets:
             self.simple = []
 
 
-    def select_simple():
-        if not is_multiple_selected:
+    def select_simple(self):
+        if not self.is_multiple_selected:
             raise Exception('Simple bet is already selected')
 
         is_multiple_selected = False
 
-    def select_multiple():
-        if is_multiple_selected:
+    def select_multiple(self):
+        if self.is_multiple_selected:
             raise Exception('Multiple bet is already selected')
 
-        is_multiple_selected = True
+        self.is_multiple_selected = True
 
         

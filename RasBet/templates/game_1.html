@@ -5,16 +5,19 @@
 <div style="float: left; width:70%; height:100%">
 
     <h1 style="text-align:center">Futebol</h1>
-    <div style="overflow:auto; height:auto; width:100%; height:100%">
+    <div style="overflow:auto; height:auto; width:100%; height:560px">
+        <!--Lista de jogos-->
         {% for game in games.values() %}
         <div style="background-color: lightgray; margin: 20px 0;color:black ; height:75px">
             <div style="height:5px"></div>
+
+            <!--Modal with teams stats-->
             <div style="margin-left:1%;float:left; width:33%">
                 <!-- Trigger/Open The Modal -->
                 <div id="myBtn-{{loop.index}}" onclick="showStats('{{loop.index}}')">
                     <h4 style="margin-top:1%"> {{ game.team_home }} - {{game.team_away}}</h4>
                 </div>
-                <h4 style="color:gray"> Hoje  </h4>
+                <h4 style="color:gray"> {{ game.date_time }}  </h4>
                 <!-- The Modal -->
                 <div id="myModal-{{loop.index}}" class="modal">
 
@@ -30,13 +33,15 @@
                             <p>Golos Sofridos</p>
                             <p>Classificacao</p>
                         </div>
-                        
+
                     </div>
 
                 </div>
             </div>
+            
+            <!-- Bet Buttons-->
             <div style="display: flex; margin-top: 5px">
-                <form action="/user/temporary_bet_simple" method="post" style="margin-left:5%; width:30%">
+                <form action="/bet/tmp/add/" method="post" style="margin-left:5%; width:30%">
                     <input type="hidden" value=" {{ game.id }}" name="game_id" style="display:none" />
                     <input type="hidden" value=" {{ game.odd_home }}" name="odd" style="display:none" />
                     <input type="hidden" value="home" name="bet_team" style="display:none" />
@@ -45,7 +50,7 @@
                         <p style="margin-bottom:0px"> {{ game.odd_home }} </p>
                     </button>
                 </form>
-                <form action="/user/temporary_bet_simple" method="post" style="margin-left:5%; width:30%">
+                <form action="/bet/tmp/add/" method="post" style="margin-left:5%; width:30%">
                     <input type="hidden" value=" {{ game.id }}" name="game_id" style="display:none" />
                     <input type="hidden" value=" {{ game.odd_draw }}" name="odd" style="display:none" />
                     <input type="hidden" value="draw" name="bet_team" style="display:none" />
@@ -54,7 +59,7 @@
                         <p style="margin-bottom:0px"> {{ game.odd_draw }} </p>
                     </button>
                 </form>
-                <form action="/user/temporary_bet_simple" method="post" style="margin-left:5%; width:30%">
+                <form action="/bet/tmp/add/" method="post" style="margin-left:5%; width:30%">
                     <input type="hidden" value=" {{ game.id }}" name="game_id" style="display:none" />
                     <input type="hidden" value=" {{ game.odd_away }}" name="odd" style="display:none" />
                     <input type="hidden" value="away" name="bet_team" style="display:none" />
@@ -64,7 +69,7 @@
                     </button>
                 </form>
             </div>
-                
+
             <div style="height:5px"></div>
         </div>
         {% endfor %}
@@ -73,6 +78,7 @@
 
 <div style="height:15px"></div>
 
+<!-- Barra direita -->
 <div style="margin-left:10%; float: right; width: 20%; height: 100%">
     <div style="border: 1px;padding: 10px; box-shadow: 0px 2px 2px grey; width:100%">
         <h4 style="text-align: center; font-weight: 700">Boletim</h4>
@@ -82,20 +88,22 @@
             <button style="border-radius: 15px"> M&uacute;ltipla </button>
         </div>
     </div>
+
     <div style="height:5px"></div>
 
     <div style="position:relative; box-shadow: 0px 2px 2px grey; height: 400px; width:100%">
         <div style="overflow:auto; height:95%">
-            {% for bet in session['simple_bets_info'] %}
+            <!-- Lista de bets simples tmp -->
+            {% for bet in session['tmp_bets'].simple %}
             <div style="border: 1px solid black; margin-top:5%; ">
                 <h5>{{ bet.4 }} - {{ bet.2 }}</h5>
                 <div style="margin-left:3%">
                     <p>Resultado: {{ bet.1 }}</p>
                     <div style="border: 1px solid black; background-color: lightgrey; width:50px; text-align:center">
-                    Cota {{ bet.0 }}
+                        Cota {{ bet.0 }}
                     </div>
                 </div>
-                
+
             </div>
             {% endfor %}
         </div>
@@ -118,7 +126,7 @@
 
                 <!-- Modal content -->
                 <div class="modal-content" style="height:400px">
-                    
+
                     <h1 style="text-align:center">Pagamento</h1>
                     <div style="margin-top:10%">
                         <div style="float:left">
@@ -129,7 +137,7 @@
                             <input type="image" style="height: 100px; border: 1px solid black; margin-left: 4px " src="https://media.discordapp.net/attachments/1036028589369466990/1036028822484697118/unknown.png" />
                             <input type="image" style="height: 100px; border: 1px solid black; margin-left: 4px " src="https://media.discordapp.net/attachments/1036028589369466990/1036029041494478859/unknown.png?width=896&height=290" />
                         </div>
-                        
+
                     </div>
                     <button style="float:left; background:red; color:white" onclick="cancelBet()">Cancelar</button>
                     <button style="float:right; background-color:forestgreen">Free!</button>
@@ -148,6 +156,7 @@
 <script src="../static/scripts/indesx.js"></script>
 
 <script>
+    ;
     // Get the modal
     var bet = document.getElementById("placeBet");
 
