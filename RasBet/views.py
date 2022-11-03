@@ -376,24 +376,28 @@ class TmpBets:
 
     def get_bet_team_game_info(bet, games):
         bets = self.multiple if self.is_multiple_selected else self.simple
+        results = []
         
+        for bet in bets:
+            
+            game = games[bet.game_id]
 
-        game = games[bet.game_id]
+            if not isinstance(game, TeamGame):
+                raise Exception("Bet is not from a team game")
 
-        if isinstance(game, TeamGame):
+            
             value_enum = bet.bet_team
-            print(value_enum, TeamSide.home)
+
             if value_enum == TeamSide.home:
                 value = game.team_home
             elif value_enum == TeamSide.away:
                 value = game.team_away
             else:
                 value = "Empate"
-                
-        else:
-            raise Exception("Bet is not from a team game")
-        
-        return ((game.team_home, game.team_away), value)
+            
+            results.append((game.team_home, game.team_away), value, bet)
+
+        return results
 
 
     def add(self, bet):
