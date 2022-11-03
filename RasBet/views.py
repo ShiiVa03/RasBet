@@ -327,7 +327,7 @@ def add_tmp_simple_bet():
 
 @app.post('/bet/tmp/set/')
 def set_tmp_bet():
-    index = request.form['index']
+    index = request.form.get('index', None)
     amount = request.form['amount']
     
     session['tmp_bets'].set_amount(index, amount)
