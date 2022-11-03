@@ -382,6 +382,9 @@ class TmpBets:
         self.multiple = []
         self.is_multiple_selected = False
 
+    def check_multiple_submit(self):
+        return all(bet.money > 0 for bet in self.multiple)
+
 
     def get_bet_team_game_info(self, games):
         bets = self.multiple if self.is_multiple_selected else self.simple
