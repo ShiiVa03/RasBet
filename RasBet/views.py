@@ -45,9 +45,11 @@ def before_first_request():
                 game_type=GameType.football,
                 datetime=datetime.strptime(game['commenceTime'], "%Y-%m-%dT%H:%M:%S.%fZ")
             )
-            
+            db.session.add(db_game)
+            db.session.commit()
+
             team_game = TeamGame(
-                game_id = game['id'], 
+                game_id = db_game.id, 
                 team_home = game['homeTeam'], 
                 team_away = game['awayTeam'],
                 odd_home = home_odd,
@@ -55,16 +57,16 @@ def before_first_request():
                 odd_away = away_odd,
                 result = game['scores']
             )
-            db.session.add(db_game)
-            db.session.add(team_game)   
+            
+            db.session.add(team_game)
+            db.session.commit()   
         else:
             team_game = db.session.execute(db.select(Game).filter_by(api_id = db_game.id))
             team_game.odd_home = home_odd
             team_game.odd_draw = draw_odd
             team_game.odd_away = away_odd
         
-       
-        db.session.commit()
+      
 
 
 '''
@@ -85,7 +87,7 @@ def games(_type):
 
     game_type = enum_game_type.value
     _games = db.session.execute(
-        f"SELECT game_id,* FROM {'no_' if not game_type.is_team_game else ''}team_game WHERE game_id IN (SELECT api_id FROM game WHERE game_type='{enum_game_type.name}')"
+        f"SELECT game_id,* FROM {'no_' if not game_type.is_team_game else ''}team_game WHERE game_id IN (SELECT id FROM game WHERE game_type='{enum_game_type.name}')"
     ).all()
 
     games = {row[0]:row[1:] for row in _games}
@@ -361,9 +363,9 @@ class TmpBets:
         self.is_multiple_selected = False
 
 
-    def get_bet_game_info(idx, games):
+    def get_bet_team_game_info(bet, games):
         bets = self.multiple if self.is_multiple_selected else self.simple
-        bet = bets[idx]
+        
 
         game = games[bet.game_id]
 
@@ -378,7 +380,7 @@ class TmpBets:
                 value = "Empate"
                 
         else:
-            value = bet.bet_no_team
+            raise Exception("Bet is not from a team game")
         
         return ((game.team_home, game.team_away), value)
 
