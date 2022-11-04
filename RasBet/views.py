@@ -418,7 +418,7 @@ class TmpBets:
         self.betbutton = row_bets
 
 
-    def get_bet_team_game_info(self, games):
+    def get_bet_team_game_info(self):
         games_bets = self.multiple if self.is_multiple_selected else self.simple
         results = []
         
