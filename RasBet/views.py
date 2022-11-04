@@ -43,8 +43,7 @@ def before_first_request():
         if not db_game:
             db_game = Game(
                 api_id=game['id'],
-                game_type=GameType.football,
-                datetime=datetime.strptime(game['commenceTime'], "%Y-%m-%dT%H:%M:%S.%fZ")
+                game_type=GameType.football
             )
             db.session.add(db_game)
             db.session.commit()
@@ -68,7 +67,8 @@ def before_first_request():
                 odd_home = home_odd,
                 odd_draw = draw_odd,
                 odd_away = away_odd,
-                result = result
+                result = result,
+                datetime=datetime.strptime(game['commenceTime'], "%Y-%m-%dT%H:%M:%S.%fZ")
             )
             
             db.session.add(team_game)

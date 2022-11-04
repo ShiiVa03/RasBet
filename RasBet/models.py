@@ -51,7 +51,6 @@ class Game(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     api_id = db.Column(db.String, nullable=False)
     game_type = db.Column(db.Enum(GameType), nullable=False)
-    datetime = db.Column(db.DateTime, nullable=False)
 
 
 class TeamGame(db.Model):
@@ -63,11 +62,13 @@ class TeamGame(db.Model):
     odd_draw = db.Column(db.Float)
     odd_away = db.Column(db.Float)
     result = db.Column(db.Enum(TeamSide))
+    datetime = db.Column(db.DateTime, nullable=False)
 
 class NoTeamGame(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     game_id = db.Column(db.ForeignKey(Game.id))
     description = db.Column(db.String(200), nullable=False)
+    datetime = db.Column(db.DateTime, nullable=False)
 
 class NoTeamGamePlayer(db.Model):
     id = db.Column(db.Integer, primary_key=True)
