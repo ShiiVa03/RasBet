@@ -259,145 +259,7 @@
 <div style="height:15px"></div>
 
 <!-- Barra direita -->
-<div style="margin-left:10%; float: right; width: 20%; height: 100%">
-    <div style="border: 1px;padding: 10px; box-shadow: 0px 2px 2px grey; width:100%">
-        <h4 style="text-align: center; font-weight: 700">Boletim</h4>
 
-        <div style="text-align:center">
-            <!-- if multiple bet is selected -->
-            {% if session['tmp_bets'].is_multiple_selected %}
-            <div style="display:flex">
-                <form action="/bet/tmp/change_context" method="post" style="margin-left:10%">
-                    <input type="hidden" value="0" name="multiple" style="display:none" />
-                    <button type="submit" style="border-radius: 15px"> Simples </button>
-                </form>
-                <button style="border-radius: 15px; background-color:black;color:white; margin-left:15%"> M&uacute;ltipla </button>
-            </div>
-
-            {% else %}
-            <div style="display:flex">
-                <button style="border-radius: 15px; background-color: black; color: white; margin-left: 10%"> Simples </button>
-                <form action="/bet/tmp/change_context" method="post" style="margin-left: 15%">
-                    <input type="hidden" value="1" name="multiple" style="display:none" />
-                    <button type="submit" style="border-radius: 15px"> M&uacute;ltipla </button>
-                </form>
-            </div>
-
-
-            {% endif %}
-        </div>
-    </div>
-
-    <div style="height:5px"></div>
-
-    <div style="position:relative; box-shadow: 0px 2px 2px grey; height: 400px; width:100%">
-        <div style="overflow:auto; height:95%">
-            <!-- Lista de bets tmp -->
-            {% for (team_home, team_away), result, bet in session["tmp_bets"].get_bet_team_game_info(games) %}
-            <div style="border: 1px solid black; margin-top:5%; height:120px ">
-                <form action="/bet/tmp/del/" method="post">
-                    <input type="hidden" value={{ loop.index - 1 }} name="index" style="display:none" />
-                    <button class="close" type="submit" style="margin-right:3%">
-                        &times;
-                    </button>
-                </form>
-                <h5>{{ team_home }} - {{ team_away }}</h5>
-                <div style="margin-left:3%">
-                    <p>Resultado: {{ result }}</p>
-                </div>
-                <div style="width:90% ; height: 30px">
-                    <div style="float:left; margin-left: 5%; border: 1px solid black; background-color: lightgrey; width: 50px; text-align: center">
-                        Cota {{ bet.odd }}
-                    </div>
-                    {% if not session['tmp_bets'].is_multiple_selected %}
-                    <form action="/bet/tmp/set/" method="post" style="margin-left: 5%">
-                        <input type="hidden" value="{{ loop.index - 1 }}" name="index" />
-                        <input type="text" placeholder=" {{ bet.money  }} &euro;" name="amount" style="width: 50%; margin-left:5%" />
-                    </form>
-                    {% endif %}
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-
-        <div style="display:flex;position:absolute; bottom:0; width:100%; background-color:lightgray">
-            {% if session['tmp_bets'].is_multiple_selected %}
-            Montante:
-            <form action="/bet/tmp/set/" method="post">
-                {% if session["tmp_bets"].get_bet_team_game_info(games).__len__() > 0 %}
-                <input type="text" placeholder=" {{ session["tmp_bets"].multiple[0].money  }}" name="amount" style="width: 50%; margin-left: 50%" />
-                {% else %}
-                <input type="text" placeholder=" 0.0 " name="amount" style="width:50%; margin-left:10%" />
-                {% endif %}
-            </form>
-            {% endif %}
-        </div>
-    </div>
-
-    <div style="height:15px"></div>
-
-    <div style="border: 1px;padding: 10px; box-shadow: 0px 2px 2px grey; width:100%">
-        {% if session['tmp_bets'].is_multiple_selected %}
-        {% if session["tmp_bets"].get_bet_team_game_info(games).__len__() > 0 %}
-        <p> Montante total {{ session["tmp_bets"].multiple[0].money  }} &euro;</p>
-        {% else %}
-        <p> Montante total 0.0 &euro;</p>
-        {% endif %}
-        <p> Total de ganhos </p> <!--Calcular o total de possiveis ganhos-->
-        {% else %}
-        <p> Montante total {{ session["tmp_bets"].total_simple_ammount() }} &euro; </p> <!--Calcular Montante de todas as bets simples-->
-        <p> Total de ganhos </p> <!--Calcular o total de possiveis ganhos-->
-        {% endif %}
-        <div style="text-align:center">
-            {% if session.get('name') %}
-            {% if session['tmp_bets'].is_multiple_selected  %}
-            <!-- Check for multiple -->
-            {% if session['tmp_bets'].check_multiple_submit() %}
-            <button id="apostarBtn" style="border-radius: 15px; background-color: red; text-align: center; border: 1px solid #ff4b2b; color:white"> Apostar </button>
-            {% else %}
-            <button style="border-radius: 15px; background-color: red; text-align: center; border: 1px solid #ff4b2b; color:white"> Apostar </button>
-            {% endif %}
-            {% else %}
-            <!--Check for simple-->
-            {% if session['tmp_bets'].check_simple_submit() %}
-            <button id="apostarBtn" style="border-radius: 15px; background-color: red; text-align: center; border: 1px solid #ff4b2b; color:white"> Apostar </button>
-            {% else %}
-            <button style="border-radius: 15px; background-color: red; text-align: center; border: 1px solid #ff4b2b; color:white"> Apostar </button>
-            {% endif %}
-            {% endif %}
-            <!-- The Modal -->
-            <div id="placeBet" class="modal">
-
-                <!-- Modal content -->
-                <div class="modal-content" style="height:400px">
-
-                    <h1 style="text-align:center">Pagamento</h1>
-                    <div style="margin-top:10%">
-                        <div style="float:left">
-                            <h4>M&eacute;todo de pagamento</h4>
-                        </div>
-                        <div>
-                            <input type="image" style="height: 100px; border: 1px solid black; margin-left: 0px" src="https://media.discordapp.net/attachments/1036028589369466990/1036028591231729684/unknown.png?width=344&height=406" />
-                            <input type="image" style="height: 100px; border: 1px solid black; margin-left: 4px " src="https://media.discordapp.net/attachments/1036028589369466990/1036028822484697118/unknown.png" />
-                            <input type="image" style="height: 100px; border: 1px solid black; margin-left: 4px " src="https://media.discordapp.net/attachments/1036028589369466990/1036029041494478859/unknown.png?width=896&height=290" />
-                        </div>
-
-                    </div>
-                    <button style="float:left; background:red; color:white" onclick="cancelBet()">Cancelar</button>
-                    <form action="/bet/create/" method="post">
-                        <button type="submit" style="float:right; background-color:forestgreen">Free!</button>
-                    </form>
-
-                </div>
-
-            </div>
-            {% else %}
-            <a class="btnStack" href="{{ url_for('account_access') }}">Apostar</a>
-            {% endif %}
-        </div>
-    </div>
-
-</div>
 
 
 <script src="../static/scripts/indesx.js"></script>
@@ -407,15 +269,7 @@
     function checkForBets(gameId) {
         session['tmp_bets'].has_game_multiple_bet(gameId);
     }
-    function isEmpty() {
-        if (checkBet.length == 0) return true;
-        return false;
-    }
 
-    // Get the modal
-    var bet = document.getElementById("placeBet");
-
-    var btn = document.getElementById("apostarBtn");
 
     // When the user clicks the button, open the modal
     function showStats(id) {
@@ -423,9 +277,6 @@
         modal.style.display = "block";
     }
 
-    btn.onclick = function () {
-        bet.style.display = "block";
-    }
 
     // When the user clicks on <span> (x), close the modal
     function closeStats(id) {
@@ -433,9 +284,6 @@
         modal.style.display = "none";
     }
 
-    function cancelBet() {
-        bet.style.display = "none";
-    }
 
 </script>
 
