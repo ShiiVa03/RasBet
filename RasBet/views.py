@@ -117,7 +117,7 @@ def games(_type):
 @app.route('/home/')
 def home():
     """Renders the home page."""
-    _games = db.session.execute("SELECT * FROM team_game WHERE game_id IN (SELECT api_id FROM game WHERE date(datetime)=DATE('now'))").all()
+    _games = db.session.execute("SELECT * FROM team_game WHERE game_id IN (SELECT id FROM game WHERE date(datetime)=DATE('now'))").all()
 
     games = {row.game_id:row for row in _games}
     
@@ -322,7 +322,7 @@ def add_tmp_simple_bet():
         bet_team = team_side
     )
     
-    tmp_bets.add(user_partial_bet)
+    tmp_bets.add(game, user_partial_bet)
     return redirect(request.referrer)
     
 
@@ -386,20 +386,20 @@ class TmpBets:
         self.betbutton = []
 
     def check_simple_submit(self):
-        return self.simple and all(bet.money > 0 for bet in self.simple)
+        return bool(self.simple) and all(bet.money > 0 for _, bet in self.simple)
     
     def check_multiple_submit(self):
-        return self.multiple and self.multiple[0].money > 0
+        return bool(self.multiple) and self.multiple[0][1].money > 0
 
     def total_simple_ammount(self):
-        return sum(bet.money for bet in self.simple)
+        return sum(bet.money for _, bet in self.simple)
 
 
     def has_game_multiple_bet(self, game_id):
 
-        bets = self.multiple if self.is_multiple_selected else self.simple
+        games_bets = self.multiple if self.is_multiple_selected else self.simple
         
-        selected_bets_team = [bet.bet_team for bet in bets if bet.game_id == game_id]
+        selected_bets_team = [bet.bet_team for _, bet in games_bets if bet.game_id == game_id]
 
         row_bets = [0, 0, 0]
 
@@ -419,40 +419,36 @@ class TmpBets:
 
 
     def get_bet_team_game_info(self, games):
-        bets = self.multiple if self.is_multiple_selected else self.simple
+        games_bets = self.multiple if self.is_multiple_selected else self.simple
         results = []
         
         
-        for bet in bets:
-            
-            game = games[bet.game_id]
-            
-
+        for game, bet in games_bets:
             
             value_enum = bet.bet_team
 
             if value_enum == TeamSide.home:
-                value = game[2]
+                value = game.team_home
             elif value_enum == TeamSide.away:
-                value = game[3]
+                value = game.team_away
             else:
                 value = "Empate"
             
-            results.append(((game[2], game[3]), value, bet))
+            results.append(((game.team_home, game.team_away), value, bet))
 
         return results
 
 
-    def add(self, bet):
+    def add(self, game, bet):
         if self.is_multiple_selected:
             if any(bet.game_id == cached_bet.game_id for cached_bet in self.multiple):
                 raise Exception('Multiple bet must be unique per game')
 
             if len(self.multiple) > 0:
-                bet.money = self.multiple[0].money
-            self.multiple.append(bet)
+                bet.money = self.multiple[0][1].money
+            self.multiple.append((game, bet))
         else:
-            self.simple.append(bet)
+            self.simple.append((game, bet))
 
 
 
@@ -465,24 +461,24 @@ class TmpBets:
 
     def set_amount(self, idx, amount):
         if self.is_multiple_selected:
-            for bet in self.multiple:
+            for _, bet in self.multiple:
                 bet.money = amount
         else:
-            self.simple[idx].money = amount
+            self.simple[idx][1].money = amount
         
 
     def flush(self, _id):
         if self.is_multiple_selected:
-            for bet in self.multiple:
+            for _, bet in self.multiple:
                 bet.user_bet_id = _id
+                db.session.add(bet)
 
-            db.session.add_all(self.multiple)
             self.multiple = []
         else:  
-            for bet in self.simple:
+            for _, bet in self.simple:
                 bet.user_bet_id = _id
+                db.session.add(bet)
 
-            db.session.add_all(self.simple)
             self.simple = []
 
 
