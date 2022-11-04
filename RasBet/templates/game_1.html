@@ -17,7 +17,7 @@
                 <div id="myBtn-{{loop.index}}" onclick="showStats('{{loop.index}}')">
                     <h4 style="margin-top:1%"> {{ game.team_home }} - {{game.team_away}}</h4>
                 </div>
-                <h4 style="color:gray"> {{ game.datetime.rsplit(':', 1)[0] }}  </h4>
+                <h4 style="color:gray"> {{ game.datetime.split(' ', 1)[0] }}  </h4>
                 <!-- The Modal -->
                 <div id="myModal-{{loop.index}}" class="modal">
 

@@ -109,19 +109,20 @@
                     </div>
                     {% endfor %}
                 </div>
+                {% if session['tmp_bets'].is_multiple_selected %}
+                <div style="border: 1px solid black; display: flex; position: absolute; bottom: 0; width: 100%; background-color: lightgray">
 
-                <div style="display:flex;position:absolute; bottom:0; width:100%; background-color:lightgray">
-                    {% if session['tmp_bets'].is_multiple_selected %}
                     Montante:
                     <form action="/bet/tmp/set/" method="post">
                         {% if session["tmp_bets"].get_bet_team_game_info(games).__len__() > 0 %}
-                        <input type="text" placeholder=" {{ session["tmp_bets"].multiple[0].money  }}" name="amount" style="width: 50%; margin-left: 50%" />
+                        <input type="text" placeholder=" {{ session["tmp_bets"].multiple[0].money }} &euro;" name="amount" style="width:50%;margin-left:50%"/>
                         {% else %}
-                        <input type="text" placeholder=" 0.0 " name="amount" style="width:50%; margin-left:10%" />
+                        <input type="text" placeholder=" 0.0 &euro;" name="amount" style="width:50%;margin-left:50%" />
                         {% endif %}
                     </form>
-                    {% endif %}
+
                 </div>
+                {% endif %}
             </div>
 
             <div style="height:15px"></div>
@@ -188,6 +189,7 @@
             </div>
 
         </div>
+
         {%endif%}
     </div>
 
