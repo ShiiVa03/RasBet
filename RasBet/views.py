@@ -2,7 +2,7 @@
 Routes and views for the flask application.
 """
 
-from ast import Return
+
 import json
 import regex
 import hashlib
@@ -381,13 +381,39 @@ class TmpBets:
         self.simple = []
         self.multiple = []
         self.is_multiple_selected = False
+        self.betbutton = []
 
     def check_simple_submit(self):
-        return all(bet.money > 0 for bet in self.multiple)
+        return self.simple and all(bet.money > 0 for bet in self.simple)
     
+    def check_multiple_submit(self):
+        return self.multiple and self.multiple[0].money > 0
 
     def total_simple_ammount(self):
         return sum(bet.money for bet in self.simple)
+
+
+    def has_game_multiple_bet(self, game_id):
+
+        bets = self.multiple if self.is_multiple_selected else self.simple
+        
+        selected_bets_team = [bet.bet_team for bet in bets if bet.game_id == game_id]
+
+        row_bets = [0, 0, 0]
+
+        for bet_team in selected_bets_team:
+            
+            if bet_team == TeamSide.home:
+                row_bets[0] = 1
+            elif bet_team == TeamSide.draw:
+                row_bets[1] = 1
+            elif bet_team == TeamSide.away:
+                row_bets[2] = 1
+        print(row_bets)
+        if row_bets == [0, 0, 0]:
+            row_bets = []
+
+        self.betbutton = row_bets
 
 
     def get_bet_team_game_info(self, games):
