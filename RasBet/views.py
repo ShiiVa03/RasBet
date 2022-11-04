@@ -117,8 +117,10 @@ def games(_type):
 @app.route('/home/')
 def home():
     """Renders the home page."""
-    games = db.session.execute("SELECT * FROM team_game WHERE game_id IN (SELECT api_id FROM game WHERE date(datetime)=DATE('now'))").all()
+    _games = db.session.execute("SELECT * FROM team_game WHERE game_id IN (SELECT api_id FROM game WHERE date(datetime)=DATE('now'))").all()
 
+    games = {row.game_id:row for row in _games}
+    
     if 'tmp_bets' not in session:
         session['tmp_bets'] = TmpBets()
 
