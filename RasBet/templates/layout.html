@@ -115,7 +115,7 @@
                     Montante:
                     <form action="/bet/tmp/set/" method="post">
                         {% if session["tmp_bets"].get_bet_team_game_info() %}
-                        <input type="text" placeholder=" {{ session["tmp_bets"].multiple[0].money }} &euro;" name="amount" style="width:50%;margin-left:50%"/>
+                        <input type="text" placeholder=" {{ session["tmp_bets"].multiple[0][1].money }} &euro;" name="amount" style="width:50%;margin-left:50%"/>
                         {% else %}
                         <input type="text" placeholder=" 0.0 &euro;" name="amount" style="width:50%;margin-left:50%" />
                         {% endif %}
@@ -130,14 +130,14 @@
             <div style="border: 1px;padding: 10px; box-shadow: 0px 2px 2px grey; width:100%">
                 {% if session['tmp_bets'].is_multiple_selected %}
                 {% if session["tmp_bets"].get_bet_team_game_info() %}
-                <p> Montante total {{ session["tmp_bets"].multiple[0].money  }} &euro;</p>
+                <p> Montante total {{ session["tmp_bets"].multiple[0][1].money  }} &euro;</p>
                 {% else %}
                 <p> Montante total 0.0 &euro;</p>
                 {% endif %}
-                <p> Total de ganhos </p> <!--Calcular o total de possiveis ganhos-->
+                <p> Total de ganhos {{ session["tmp_bets"].total_gains()  }} &euro; </p>
                 {% else %}
                 <p> Montante total {{ session["tmp_bets"].total_simple_ammount() }} &euro; </p> <!--Calcular Montante de todas as bets simples-->
-                <p> Total de ganhos </p> <!--Calcular o total de possiveis ganhos-->
+                <p> Total de ganhos {{ session["tmp_bets"].total_gains()  }} &euro; </p> <!--Calcular o total de possiveis ganhos-->
                 {% endif %}
                 <div style="text-align:center">
                     {% if session.get('name') %}

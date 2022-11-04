@@ -14,7 +14,7 @@ from dateutil.relativedelta import relativedelta
 from flask import render_template, session, url_for, abort, request, redirect
 from RasBet import app, db
 from .models import TeamGame, User, Transaction, Game, GameType, UserBet, UserParcialBet, TeamSide
-
+from math import prod
 
 
 
@@ -235,13 +235,13 @@ def register():
         passwd = get_hashed_passwd(request.form['passwd']),
         birthdate = birthdate
     )
-    session['id'] = user.id
-    session['name'] = user.name
-    session['email'] = user.email   
+      
 
     db.session.add(user)
     db.session.commit()
-
+    session['id'] = user.id
+    session['name'] = user.name
+    session['email'] = user.email 
             
     return redirect(url_for('home'))
     
@@ -317,8 +317,8 @@ def add_tmp_simple_bet():
     
     user_partial_bet = UserParcialBet(
         game_id = int(request.form['game_id']),
-        odd = request.form['odd'],
-        money = 0,
+        odd = float(request.form['odd']),
+        money = 0.0,
         bet_team = team_side
     )
     
@@ -394,6 +394,14 @@ class TmpBets:
     def total_simple_ammount(self):
         return sum(bet.money for _, bet in self.simple)
 
+    def total_gains(self):
+        if self.is_multiple_selected:
+            if self.multiple:
+                return self.multiple[0][1].money * prod((bet.odd for _, bet in self.multiple))
+        elif self.simple:
+            return sum(bet.money * bet.odd for _, bet in self.simple)
+
+        return 0.0
 
     def has_game_multiple_bet(self, game_id):
 
@@ -441,7 +449,7 @@ class TmpBets:
 
     def add(self, game, bet):
         if self.is_multiple_selected:
-            if any(bet.game_id == cached_bet.game_id for cached_bet in self.multiple):
+            if any(bet.game_id == cached_bet.game_id for _, cached_bet in self.multiple):
                 raise Exception('Multiple bet must be unique per game')
 
             if len(self.multiple) > 0:
