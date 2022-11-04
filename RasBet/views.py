@@ -411,7 +411,7 @@ class TmpBets:
                 row_bets[1] = 1
             elif bet_team == TeamSide.away:
                 row_bets[2] = 1
-        print(row_bets)
+
         if row_bets == [0, 0, 0]:
             row_bets = []
 
