@@ -39,6 +39,7 @@
                 </div>
             </div>
             
+            
             <!-- Bet Buttons-->
             <div style="display: flex; margin-top: 5px">
                 <form action="/bet/tmp/add/" method="post" style="margin-left:5%; width:30%">
@@ -155,18 +156,32 @@
     <div style="border: 1px;padding: 10px; box-shadow: 0px 2px 2px grey; width:100%">
         {% if session['tmp_bets'].is_multiple_selected %}
         {% if session["tmp_bets"].get_bet_team_game_info(games).__len__() > 0 %}
-        <p> Montante total {{ session["tmp_bets"].multiple[0].money  }}</p>
+        <p> Montante total {{ session["tmp_bets"].multiple[0].money  }} &euro;</p>
         {% else %}
-        <p> Montante total 0.0</p>
+        <p> Montante total 0.0 &euro;</p>
         {% endif %}
         <p> Total de ganhos </p> <!--Calcular o total de possiveis ganhos-->
         {% else %}
-        <p> Montante total </p> <!--Calcular Montante de todas as bets simples-->
+        <p> Montante total {{ session["tmp_bets"].total_simple_ammount() }} &euro; </p> <!--Calcular Montante de todas as bets simples-->
         <p> Total de ganhos </p> <!--Calcular o total de possiveis ganhos-->
         {% endif %}
         <div style="text-align:center">
             {% if session.get('name') %}
+            {% if session['tmp_bets'].is_multiple_selected  %}
+            <!-- Check for multiple -->
+            {% if session['tmp_bets'].check_multiple_submit() and session["tmp_bets"].get_bet_team_game_info(games).__len__() > 0  %}
             <button id="apostarBtn" style="border-radius: 15px; background-color: red; text-align: center; border: 1px solid #ff4b2b; color:white"> Apostar </button>
+            {% else %}
+            <button style="border-radius: 15px; background-color: red; text-align: center; border: 1px solid #ff4b2b; color:white"> Apostar </button>
+            {% endif %}
+            {% else %}
+            <!--Check for simple-->
+            {% if session['tmp_bets'].check_simple_submit() and session["tmp_bets"].get_bet_team_game_info(games).__len__() > 0 %}
+            <button id="apostarBtn" style="border-radius: 15px; background-color: red; text-align: center; border: 1px solid #ff4b2b; color:white"> Apostar </button>
+            {% else %}
+            <button style="border-radius: 15px; background-color: red; text-align: center; border: 1px solid #ff4b2b; color:white"> Apostar </button>
+            {% endif %}
+            {% endif %}
             <!-- The Modal -->
             <div id="placeBet" class="modal">
 
@@ -206,10 +221,16 @@
 
 <script>
 
+    var existe = 0;
+
     // Get the modal
     var bet = document.getElementById("placeBet");
 
     var btn = document.getElementById("apostarBtn");
+
+    function checkExiste() {
+        existe = 0; 
+    }
 
     // When the user clicks the button, open the modal
     function showStats(id) {

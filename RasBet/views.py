@@ -385,6 +385,18 @@ class TmpBets:
     def check_multiple_submit(self):
         return all(bet.money > 0 for bet in self.multiple)
 
+    def check_simple_submit(self):
+        for bet in self.simple:
+            if bet.money == 0:
+                return False
+        return True
+
+    def total_simple_ammount(self):
+        total = 0
+        for bet in self.simple:
+            total += bet.money
+        return total
+
 
     def get_bet_team_game_info(self, games):
         bets = self.multiple if self.is_multiple_selected else self.simple
