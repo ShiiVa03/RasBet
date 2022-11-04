@@ -382,20 +382,12 @@ class TmpBets:
         self.multiple = []
         self.is_multiple_selected = False
 
-    def check_multiple_submit(self):
-        return all(bet.money > 0 for bet in self.multiple)
-
     def check_simple_submit(self):
-        for bet in self.simple:
-            if bet.money == 0:
-                return False
-        return True
+        return all(bet.money > 0 for bet in self.multiple)
+    
 
     def total_simple_ammount(self):
-        total = 0
-        for bet in self.simple:
-            total += bet.money
-        return total
+        return sum(bet.money for bet in self.simple)
 
 
     def get_bet_team_game_info(self, games):
@@ -428,6 +420,8 @@ class TmpBets:
             if any(bet.game_id == cached_bet.game_id for cached_bet in self.multiple):
                 raise Exception('Multiple bet must be unique per game')
 
+            if len(self.multiple) > 0:
+                bet.money = self.multiple[0].money
             self.multiple.append(bet)
         else:
             self.simple.append(bet)
