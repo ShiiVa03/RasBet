@@ -101,20 +101,24 @@ def update_balances():
         
         for bet, res_list in x.items():
             for tup in res_list:
-                if not tup.paid:
-                    if tup.result and tup.result == tup.bet_team:
-                        tup.paid = True
-                        user_balance = db.session.execute(f"SELECT balance FROM user WHERE user_id = '{}'")
-                        
-                        
-            
-            
-            
-        for user in list(set(result.user_id)):
-            if res.bet_team == res.result:
-                user = db.get_or_404(User, session['id'])
-                if res.is_multiple:
-                    user.balance += res.money * prod()
+                if not tup[0] and tup[4] != TeamSide.undefined:
+                    if tup[4] == tup[2]:
+                        user_balance = db.session.execute(f"SELECT balance FROM user WHERE id = '{tup[3]}'").scalar()
+                        print(user_balance)
+                        new_user_balance = user_balance + tup[1]
+                        db.session.execute(f"UPDATE user SET balance = '{new_user_balance}' WHERE id = '{tup[3]}'")
+                        transaction = Transaction(
+                            user_id = tup[3],
+                            datetime = datetime.now(),
+                            value = tup[1],
+                            balance = new_user_balance,
+                            description = "Aposta Ganha"
+                        )
+                        db.session.add(transaction)   
+                    db.session.execute(f"UPDATE user_bet SET paid = 'True' WHERE id = '{bet}'")
+           
+    
+        db.session.commit()
         
                 
             
