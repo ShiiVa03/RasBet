@@ -1,0 +1,57 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+<div style="height:75px"></div>
+<div style=" margin: auto; width: 60%; height:420px; background-color: lightgray; border-radius: 15px">
+    <div style="height:5px"></div>
+    <h4 style="text-align: center; font-weight: 700">{{session['name']}}</h4>
+    <h4 style="text-align: center; font-weight: 700">Hist&oacute;rico de Apostas</h4>
+    <div style="text-align:center; margin-top: 3%; width: auto ">
+        <button id="btnS" onclick="showSimples()" style="background-color: red; border-color: red; width: 150px; height: 40px; font-size: 20px; margin: 0 10%"><b>Simples</b></button>
+        <button id="btnM" onclick="showMultipla()" style="background-color: white; border-color: red; width: 150px; height: 40px; font-size: 20px; margin: 0 10%"><b>Multipla</b></button>
+    </div>
+    <div id="Simples" style=" margin: auto; width: 80%; height:auto; display:block">
+        Ola simnples
+        {% for bet in bets_simple %}
+        <div style="border: 1px solid black;">
+            <div> {{bet.team_home}} </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div id="Multipla" style=" margin: auto; width: 80%; height:auto;display:none">
+        Ola multipla
+    </div>
+
+</div>
+
+<script>
+
+    function showSimples() {
+        var simples = document.getElementById(`Simples`);
+        var multipla = document.getElementById(`Multipla`);
+        var btnS = document.getElementById(`btnS`);
+        var btnM = document.getElementById(`btnM`);
+        btnS.style.backgroundColor = "red";
+        btnM.style.backgroundColor = "white";
+        multipla.style.display = "none";
+        simples.style.display = "block";
+    }
+
+    function showMultipla() {
+        var simples = document.getElementById(`Simples`);
+        var multipla = document.getElementById(`Multipla`);
+        var btnS = document.getElementById(`btnS`);
+        var btnM = document.getElementById(`btnM`);
+        btnM.style.backgroundColor = "red";
+        btnS.style.backgroundColor = "white";
+        simples.style.display = "none";
+        multipla.style.display = "block";
+    }
+
+
+</script>
+
+
+    {% endblock %}

@@ -84,38 +84,7 @@ def get_football_games():
 Background Threads
 '''
 
-@scheduler.task('interval', id='update_balances', seconds=5)
-def update_balances():
-    with app.app_context():
-        result = db.session.execute("SELECT UB.id, UB.paid, UB.possible_gains, UP.bet_team, UB.user_id,TG.result FROM user_parcial_bet UP\
-                            INNER JOIN user_bet UB\
-                            ON UP.user_bet_id = UB.id\
-                            INNER JOIN  game G\
-                            ON UP.game_id = G.id\
-                            INNER JOIN team_game TG\
-                            ON TG.game_id = G.id").all()
-        x = {}
-        
-        for bet, *res in result:
-            x.setdefault(bet, []).append(res)
-        
-        for bet, res_list in x.items():
-            for tup in res_list:
-                if not tup.paid:
-                    if tup.result and tup.result == tup.bet_team:
-                        tup.paid = True
-                        user_balance = db.session.execute(f"SELECT balance FROM user WHERE user_id = '{}'")
-                        
-                        
-            
-            
-            
-        for user in list(set(result.user_id)):
-            if res.bet_team == res.result:
-                user = db.get_or_404(User, session['id'])
-                if res.is_multiple:
-                    user.balance += res.money * prod()
-        
+
                 
             
 
@@ -234,7 +203,7 @@ def user_transactions():
         balance = user.balance
     )
 
-@app.get('/user/bets/simple')
+@app.get('/user/bets')
 def user_get_simple_bets():
     
     user = db.get_or_404(User, session['id'])
@@ -242,28 +211,16 @@ def user_get_simple_bets():
     if not user:
         abort(404, "User not found")
 
-    bets = db.session.execute(f"SELECT * FROM user_partial_bet WHERE user_bet_id IN (SELECT id FROM user_bet WHERE user_id = '{user.id}' AND is_multiple = 'False'").all()
-    
+    bets_simple = db.session.execute(f"SELECT * FROM user_parcial_bet WHERE user_bet_id IN (SELECT id FROM user_bet WHERE user_id = '{user.id}' AND is_multiple = 'False')").all()
+    bets_multiple = db.session.execute(f"SELECT * FROM user_parcial_bet WHERE user_bet_id IN (SELECT id FROM user_bet WHERE user_id = '{user.id}' AND is_multiple = 'True')").all()
+
     return render_template(
-        'account_transactions.html',
-        bets
+        'account_bets.html',
+        bets_simple = bets_simple,
+        bets_multiple = bets_multiple
     )
     
- 
-@app.get('/user/bets/multiple')
-def user_get_multiple_bets():
-    
-    user = db.get_or_404(User, session['id'])
-    
-    if not user:
-        abort(404, "User not found")
-
-    bets = db.session.execute(f"SELECT * FROM user_partial_bet WHERE user_bet_id IN (SELECT id FROM user_bet WHERE user_id = '{user.id}' AND is_multiple = 'True'").all()
-    
-    return render_template(
-        'account_transactions.html',
-        bets
-    )   
+  
 
 
 '''
@@ -478,8 +435,8 @@ def deposit():
         user_id = session['id'],
         datetime = datetime.now(),
         value = value,
-        balance = user.balance + value,
-        description = "Levantamento"
+        balance = user.balance,
+        description = "Deposito"
     )
     db.session.add(transaction)   
     db.session.commit()
@@ -494,7 +451,7 @@ def withdraw():
     
     value = float(request.form['value'])
     if value > user.balance:
-        abort(500, 'Não pode levantar mais que o su balance')
+        abort(500, 'Não pode levantar mais que o seu balance')
         
     user.balance -= value
     
@@ -502,7 +459,7 @@ def withdraw():
         user_id = session['id'],
         datetime = datetime.now(),
         value = value,
-        balance = user.balance - value,
+        balance = user.balance,
         description = "Levantamento"
     )
     db.session.add(transaction)    

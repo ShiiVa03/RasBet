@@ -21,21 +21,19 @@
                 </tr>
             </thead>
 
-            <tbody style="display: block; height: 50px; overflow: auto">
+            <tbody style="display: block; height:280px; overflow: auto">
                 {% for transaction in transactions %}
                 <tr style="display: table; width: 100%; table-layout: fixed">
                     <td> {{ transaction.datetime.date().__str__() }} </td>
                     <td> {{ transaction.description }} </td>
-                    {% if transaction.value >= 0 %}
-                    <td> +{{ transaction.value }}&euro; </td>
-                    {% else %}
+                    {% if transaction.description == "Levantamento" %}
                     <td> -{{ transaction.value }}&euro; </td>
+                    {% elif transaction.description == "Deposito" %}
+                    <td> +{{ transaction.value }}&euro; </td>
+                    {%else%}
+                    <td> +{{ transaction.value }}&euro; </td>
                     {% endif %}
-                    {% if transaction.balance >= 0 %}
-                    <td> +{{ transaction.balance }}&euro; </td>
-                    {% else %}
-                    <td> -{{ transaction.balance }}&euro; </td>
-                    {% endif %}
+                    <td> {{ transaction.balance }}&euro; </td>
                 </tr>
                 {% endfor %}
             </tbody>
