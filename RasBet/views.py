@@ -84,6 +84,38 @@ def get_football_games():
 Background Threads
 '''
 
+@scheduler.task('interval', id='update_balances', seconds=5)
+def update_balances():
+    with app.app_context():
+        result = db.session.execute("SELECT UB.id, UB.paid, UB.possible_gains, UP.bet_team, UB.user_id,TG.result FROM user_parcial_bet UP\
+                            INNER JOIN user_bet UB\
+                            ON UP.user_bet_id = UB.id\
+                            INNER JOIN  game G\
+                            ON UP.game_id = G.id\
+                            INNER JOIN team_game TG\
+                            ON TG.game_id = G.id").all()
+        x = {}
+        
+        for bet, *res in result:
+            x.setdefault(bet, []).append(res)
+        
+        for bet, res_list in x.items():
+            for tup in res_list:
+                if not tup.paid:
+                    if tup.result and tup.result == tup.bet_team:
+                        tup.paid = True
+                        user_balance = db.session.execute(f"SELECT balance FROM user WHERE user_id = '{}'")
+                        
+                        
+            
+            
+            
+        for user in list(set(result.user_id)):
+            if res.bet_team == res.result:
+                user = db.get_or_404(User, session['id'])
+                if res.is_multiple:
+                    user.balance += res.money * prod()
+        
                 
             
 
@@ -398,7 +430,9 @@ def bet_simple():
     
     user_bet = UserBet(
         user_id = session['id'],
-        is_multiple = tmp_bets.is_multiple_selected
+        is_multiple = tmp_bets.is_multiple_selected,
+        paid = False,
+        possible_gains = session['tmp_bets'].total_gains()
     )
     
     transaction = Transaction(
