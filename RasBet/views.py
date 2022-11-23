@@ -119,6 +119,7 @@ def update_balances():
                 
             
 
+
 '''
 WEB
 '''
@@ -473,6 +474,14 @@ def deposit():
     value = float(request.form['value'])
     user.balance += value
     
+    transaction = Transaction(
+        user_id = session['id'],
+        datetime = datetime.now(),
+        value = value,
+        balance = user.balance + value,
+        description = "Levantamento"
+    )
+    db.session.add(transaction)   
     db.session.commit()
     return redirect(request.referrer)
 
@@ -489,6 +498,14 @@ def withdraw():
         
     user.balance -= value
     
+    transaction = Transaction(
+        user_id = session['id'],
+        datetime = datetime.now(),
+        value = value,
+        balance = user.balance - value,
+        description = "Levantamento"
+    )
+    db.session.add(transaction)    
     db.session.commit()
     return redirect(request.referrer)
     
