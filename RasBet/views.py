@@ -436,7 +436,7 @@ def deposit():
     if not user:
         abort(404, "User not found")
     
-    value = request.form['value']
+    value = float(request.form['value'])
     user.balance += value
     
     db.session.commit()
@@ -449,7 +449,7 @@ def withdraw():
     if not user:
         abort(404, "User not found")
     
-    value = request.form['value']
+    value = float(request.form['value'])
     if value > user.balance:
         abort(500, 'Não pode levantar mais que o su balance')
         
