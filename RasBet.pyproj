@@ -54,6 +54,9 @@
     <Content Include="RasBet\templates\account_access_partial.html">
       <SubType>Code</SubType>
     </Content>
+    <Content Include="RasBet\templates\account_bets.html">
+      <SubType>Code</SubType>
+    </Content>
     <Content Include="RasBet\templates\account_page.html">
       <SubType>Code</SubType>
     </Content>

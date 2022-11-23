@@ -238,7 +238,7 @@ def user_transactions():
         balance = user.balance
     )
 
-@app.get('/user/bets/simple')
+@app.get('/user/bets')
 def user_get_simple_bets():
     
     user = db.get_or_404(User, session['id'])
@@ -246,28 +246,16 @@ def user_get_simple_bets():
     if not user:
         abort(404, "User not found")
 
-    bets = db.session.execute(f"SELECT * FROM user_partial_bet WHERE user_bet_id IN (SELECT id FROM user_bet WHERE user_id = '{user.id}' AND is_multiple = 'False'").all()
-    
+    bets_simple = db.session.execute(f"SELECT * FROM user_parcial_bet WHERE user_bet_id IN (SELECT id FROM user_bet WHERE user_id = '{user.id}' AND is_multiple = 'False')").all()
+    bets_multiple = db.session.execute(f"SELECT * FROM user_parcial_bet WHERE user_bet_id IN (SELECT id FROM user_bet WHERE user_id = '{user.id}' AND is_multiple = 'True')").all()
+
     return render_template(
-        'account_transactions.html',
-        bets
+        'account_bets.html',
+        bets_simple = bets_simple,
+        bets_multiple = bets_multiple
     )
     
- 
-@app.get('/user/bets/multiple')
-def user_get_multiple_bets():
-    
-    user = db.get_or_404(User, session['id'])
-    
-    if not user:
-        abort(404, "User not found")
-
-    bets = db.session.execute(f"SELECT * FROM user_partial_bet WHERE user_bet_id IN (SELECT id FROM user_bet WHERE user_id = '{user.id}' AND is_multiple = 'True'").all()
-    
-    return render_template(
-        'account_transactions.html',
-        bets
-    )   
+  
 
 
 '''
@@ -482,8 +470,8 @@ def deposit():
         user_id = session['id'],
         datetime = datetime.now(),
         value = value,
-        balance = user.balance + value,
-        description = "Levantamento"
+        balance = user.balance,
+        description = "Deposito"
     )
     db.session.add(transaction)   
     db.session.commit()
@@ -498,7 +486,7 @@ def withdraw():
     
     value = float(request.form['value'])
     if value > user.balance:
-        abort(500, 'Não pode levantar mais que o su balance')
+        abort(500, 'Não pode levantar mais que o seu balance')
         
     user.balance -= value
     
@@ -506,7 +494,7 @@ def withdraw():
         user_id = session['id'],
         datetime = datetime.now(),
         value = value,
-        balance = user.balance - value,
+        balance = user.balance,
         description = "Levantamento"
     )
     db.session.add(transaction)    
