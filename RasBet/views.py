@@ -12,7 +12,8 @@ import requests
 from datetime import date, datetime
 from dateutil.relativedelta import relativedelta
 from flask import render_template, session, url_for, abort, request, redirect
-from RasBet import app, db
+from RasBet import app, db, scheduler
+
 from .models import TeamGame, User, Transaction, Game, GameType, UserBet, UserParcialBet, TeamSide
 from math import prod
 
@@ -22,65 +23,69 @@ from math import prod
 External API
 '''
 
+@scheduler.task('interval', id='get_football_games', seconds=30)
+def get_football_games():
+    with app.app_context():
+        url_football = "http://ucras.di.uminho.pt/v1/games/"
 
-@app.before_first_request
-def before_first_request():
-    url_football = "http://ucras.di.uminho.pt/v1/games/"
+        response = requests.request("GET", url_football)
 
-    response = requests.request("GET", url_football)
+        games = json.loads(response.text)
+        app.logger.info("Requested games in background")
 
-
-    games = json.loads(response.text)
-    app.logger.info("before_first_request")
-
-    for game in games:
-        db_game = db.session.execute(db.select(Game).filter_by(api_id = game['id'])).scalar()
-        odds = game['bookmakers'][0]['markets'][0]['outcomes']
-        home_odd = [x['price'] for x in odds if x['name'] == game['homeTeam']][0]
-        away_odd = [x['price'] for x in odds if x['name'] == game['awayTeam']][0]
-        draw_odd = [x['price'] for x in odds if x['name'] == 'Draw'][0]
+        for game in games:
+            db_game = db.session.execute(db.select(Game).filter_by(api_id = game['id'])).scalar()
+            odds = game['bookmakers'][0]['markets'][0]['outcomes']
+            home_odd = [x['price'] for x in odds if x['name'] == game['homeTeam']][0]
+            away_odd = [x['price'] for x in odds if x['name'] == game['awayTeam']][0]
+            draw_odd = [x['price'] for x in odds if x['name'] == 'Draw'][0]
         
-        if not db_game:
-            db_game = Game(
-                api_id=game['id'],
-                game_type=GameType.football
-            )
-            db.session.add(db_game)
-            db.session.commit()
+            if not db_game:
+                db_game = Game(
+                    api_id=game['id'],
+                    game_type=GameType.football
+                )
+                db.session.add(db_game)
+                db.session.commit()
 
-            if game['scores']:
-                home_result, away_result = list(map(int, game['scores'].split('x')))
+                if game['scores']:
+                    home_result, away_result = list(map(int, game['scores'].split('x')))
 
-                if home_result > away_result:
-                    result = TeamSide.home
-                elif home_result < away_result:
-                    result = TeamSide.away
+                    if home_result > away_result:
+                        result = TeamSide.home
+                    elif home_result < away_result:
+                        result = TeamSide.away
+                    else:
+                        result = TeamSide.draw
                 else:
-                    result = TeamSide.draw
-            else:
-                result = TeamSide.undefined
+                    result = TeamSide.undefined
 
-            team_game = TeamGame(
-                game_id = db_game.id, 
-                team_home = game['homeTeam'], 
-                team_away = game['awayTeam'],
-                odd_home = home_odd,
-                odd_draw = draw_odd,
-                odd_away = away_odd,
-                result = result,
-                datetime=datetime.strptime(game['commenceTime'], "%Y-%m-%dT%H:%M:%S.%fZ")
-            )
+                team_game = TeamGame(
+                    game_id = db_game.id, 
+                    team_home = game['homeTeam'], 
+                    team_away = game['awayTeam'],
+                    odd_home = home_odd,
+                    odd_draw = draw_odd,
+                    odd_away = away_odd,
+                    result = result,
+                    datetime=datetime.strptime(game['commenceTime'], "%Y-%m-%dT%H:%M:%S.%fZ")
+                )
             
-            db.session.add(team_game)
-            db.session.commit()   
-        else:
-            team_game = db.session.execute(db.select(Game).filter_by(api_id = db_game.id))
-            team_game.odd_home = home_odd
-            team_game.odd_draw = draw_odd
-            team_game.odd_away = away_odd
-        
+                db.session.add(team_game)
+                db.session.commit()   
+            
+            else:
+                team_game = db.session.execute(db.select(Game).filter_by(api_id = db_game.id))
+                team_game.odd_home = home_odd
+                team_game.odd_draw = draw_odd
+                team_game.odd_away = away_odd
       
+'''
+Background Threads
+'''
 
+                
+            
 
 '''
 WEB
@@ -100,8 +105,7 @@ def games(_type):
 
     game_type = enum_game_type.value
     _games = db.session.execute(
-        f"SELECT * FROM {'no_' if not game_type.is_team_game else ''}team_game WHERE game_id IN (SELECT id FROM game WHERE game_type='{enum_game_type.name}')"
-    ).all()
+        f"SELECT * FROM {'no_' if not game_type.is_team_game else ''}team_game WHERE game_id IN (SELECT id FROM game WHERE game_type='{enum_game_type.name}') AND datetime >= DATETIME('now')").all()
 
     games = {row.game_id:row for row in _games}
 
@@ -196,7 +200,37 @@ def user_transactions():
         transactions = transactions,
         balance = user.balance
     )
+
+@app.get('/user/bets/simple')
+def user_get_simple_bets():
     
+    user = db.get_or_404(User, session['id'])
+    
+    if not user:
+        abort(404, "User not found")
+
+    bets = db.session.execute(f"SELECT * FROM user_partial_bet WHERE user_bet_id IN (SELECT id FROM user_bet WHERE user_id = '{user.id}' AND is_multiple = 'False'").all()
+    
+    return render_template(
+        'account_transactions.html',
+        bets
+    )
+    
+ 
+@app.get('/user/bets/multiple')
+def user_get_multiple_bets():
+    
+    user = db.get_or_404(User, session['id'])
+    
+    if not user:
+        abort(404, "User not found")
+
+    bets = db.session.execute(f"SELECT * FROM user_partial_bet WHERE user_bet_id IN (SELECT id FROM user_bet WHERE user_id = '{user.id}' AND is_multiple = 'True'").all()
+    
+    return render_template(
+        'account_transactions.html',
+        bets
+    )   
 
 
 '''
@@ -351,10 +385,30 @@ def del_tmp_bet():
 def bet_simple():
     tmp_bets = session['tmp_bets']
     
+    user = db.get_or_404(User, session['id'])
+    
+    if not user:
+        abort(404, "User not found")
+        
+    user_balance = user.balance
+    total_spent = tmp_bets.total_spent()
+    
+    if total_spent > user_balance:
+        abort(500, 'Valor de aposta superior ao saldo')
+    
     user_bet = UserBet(
         user_id = session['id'],
         is_multiple = tmp_bets.is_multiple_selected
     )
+    
+    transaction = Transaction(
+        user_id = session['id'],
+        datetime = datetime.now(),
+        value = total_spent,
+        balance = user_balance - total_spent,
+        description = "Aposta" 
+    )
+    db.session.add(transaction)
     db.session.add(user_bet)
     db.session.commit()
     
@@ -375,6 +429,36 @@ def change_context_tmp_bet():
 
     return redirect(request.referrer)
 
+@app.post('/user/balance/deposit')
+def deposit():
+    user = db.get_or_404(User, session['id'])
+    
+    if not user:
+        abort(404, "User not found")
+    
+    value = request.form['value']
+    user.balance += value
+    
+    db.session.commit()
+    return redirect(request.referrer)
+
+@app.post('/user/balance/withdraw')
+def withdraw():
+    user = db.get_or_404(User, session['id'])
+    
+    if not user:
+        abort(404, "User not found")
+    
+    value = request.form['value']
+    if value > user.balance:
+        abort(500, 'Não pode levantar mais que o su balance')
+        
+    user.balance -= value
+    
+    db.session.commit()
+    return redirect(request.referrer)
+    
+
     
 
 
@@ -393,6 +477,15 @@ class TmpBets:
 
     def total_simple_ammount(self):
         return sum(bet.money for _, bet in self.simple)
+    
+    def total_spent(self):
+        if self.is_multiple_selected:
+            if self.multiple:
+                return self.multiple[0][1].money
+        elif self.simple:
+            return sum(bet.money for _, bet in self.simple)
+        
+        return 0.0
 
     def total_gains(self):
         if self.is_multiple_selected:

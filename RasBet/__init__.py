@@ -10,6 +10,8 @@ from datetime import timedelta
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_session import Session
+from flask_apscheduler import APScheduler
+
 
 app = Flask(__name__)
 
@@ -24,6 +26,8 @@ app.crypto_salt = os.getenv('RASBET_CRYPTO_SALT')
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///../tmp/project.db'
 db = SQLAlchemy(app)
+
+scheduler = APScheduler()
 
 import RasBet.views as views
 import RasBet.models as models

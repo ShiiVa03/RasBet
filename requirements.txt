@@ -5,3 +5,4 @@ python-dateutil
 python-dotenv
 regex
 requests
+Flask-APScheduler
