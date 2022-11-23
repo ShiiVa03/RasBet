@@ -9,9 +9,37 @@
     <h3 style="text-align:center">{{ session['name'] }}</h3>
     <h3 style="text-align:center; font-weight:900">Saldo: {{ balance }} &euro;</h3>
 
-    <div style="text-align:center; margin-top: 3%; width: auto ">    
-        <button style="background-color: white; border-color: red; width: 150px; height: 40px; font-size: 20px; margin: 0 10%"><b>Levantar</b></button>
-        <button style="background-color: red; border-color: red; width: 150px; height: 40px; font-size: 20px; margin: 0 10%"><b>Depositar</b></button> 
+    <div style="text-align:center; margin-top: 3%; width: auto ">
+        <!-- Trigger/Open The Modal Levantar -->
+        <button style="background-color: white; border-color: red; width: 150px; height: 40px; font-size: 20px; margin: 0 10%" onclick="showLevantar()"><b>Levantar</b></button>
+        <!-- The Modal -->
+        <div id="Levantar" class="modal">
+            <!-- Modal content Levantar -->
+            <div class="modal-content">
+                <button class="close" onclick="closeLevantar()">&times;</button>
+                <h1 style="text-align:center">Levantar</h1>
+
+                <form action="/user/balance/withdraw" method="post">
+                    <input type="text" placeholder="0.0 &euro;" name="value" />
+                    <button type="submit" style="background-color: red; border-color: white; width: 150px; height: 40px; font-size: 20px; margin: 0 10%"><b>Levantar</b></button>
+                </form>
+            </div>
+        </div>
+        <!-- Trigger/Open The Modal Depositar -->
+        <button style="background-color: red; border-color: red; width: 150px; height: 40px; font-size: 20px; margin: 0 10%" onclick="showDepositar()"><b>Depositar</b></button>
+        <!-- The Modal -->
+        <div id="Depositar" class="modal">
+            <!-- Modal content Levantar -->
+            <div class="modal-content">
+                <button class="close" onclick="closeDepositar()">&times;</button>
+                <h1 style="text-align:center">Depositar</h1>
+
+                <form action="/user/balance/deposit" method="post">
+                    <input type="text" placeholder="0.0 &euro;" name="value" />
+                    <button type="submit" style="background-color: white; border-color: red; width: 150px; height: 40px; font-size: 20px; margin: 0 10%"><b>Depositar</b></button>
+                </form>
+            </div>
+        </div>
     </div>
 
     <div style="margin-top: 5%; margin-left:5%">
@@ -38,6 +66,37 @@
 </div>
 
 
+<script>
 
+
+    // When the user clicks the button, open the modal Levantar
+    function showLevantar() {
+        var modal = document.getElementById(`Levantar`);
+        modal.style.display = "block";
+    }
+
+
+    // When the user clicks on <span> (x), close the modal
+    function closeLevantar() {
+        var modal = document.getElementById(`Levantar`);
+        modal.style.display = "none";
+    }
+
+    // When the user clicks the button, open the modal Depositar
+    function showDepositar() {
+        var modal = document.getElementById(`Depositar`);
+        modal.style.display = "block";
+    }
+
+
+    // When the user clicks on <span> (x), close the modal
+    function closeDepositar() {
+        var modal = document.getElementById(`Depositar`);
+        modal.style.display = "none";
+    }
+
+
+</script>
 
 {% endblock %}
+
