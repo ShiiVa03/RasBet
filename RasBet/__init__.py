@@ -3,6 +3,7 @@ The flask application package.
 """
 
 import os
+import json
 
 from dotenv import load_dotenv
 from datetime import timedelta
@@ -28,6 +29,8 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///../tmp/project.db'
 db = SQLAlchemy(app)
 
 scheduler = APScheduler()
+
+specialized_accounts = json.load(open('accounts.json'))
 
 import RasBet.views as views
 import RasBet.models as models

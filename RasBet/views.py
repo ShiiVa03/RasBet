@@ -12,7 +12,7 @@ import requests
 from datetime import date, datetime
 from dateutil.relativedelta import relativedelta
 from flask import render_template, session, url_for, abort, request, redirect
-from RasBet import app, db, scheduler
+from RasBet import app, db, scheduler, specialized_accounts
 
 from .models import TeamGame, User, Transaction, Game, GameType, UserBet, UserParcialBet, TeamSide
 from math import prod
@@ -311,16 +311,31 @@ def login():
 
     if not check_valid_email(email):
         abort(404, 'Email not valid')
+    
+    password = get_hashed_passwd(request.form['passwd'])
 
+    for account in specialized_accounts:
+        if email == account.get("email"):
+            if account.get("password") != password:
+                abort(404, "Wrong credentials")
+            
+            session['name'] = account.get("type")
+            session['email'] = email
+            
+            if account.get("type") == "admin":
+                return redirect(url_for('home')) # pag do admin
+            else:
+                return redirect(url_for('home')) # pag do especialista
+    
     user = db.first_or_404(db.select(User).filter_by(email=email)) # It is already unique
 
-    if user.passwd != get_hashed_passwd(request.form['passwd']):
+    if user.passwd != password:
         abort(404, "Wrong credentials")
 
     session['id'] = user.id
     session['name'] = user.name
     session['email'] = user.email
-            
+        
     return redirect(url_for('home'))
 
 @app.post('/user/')

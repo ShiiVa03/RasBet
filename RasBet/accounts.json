@@ -1,0 +1,12 @@
+[
+    {
+      "email": "admin1@gmail.com",
+      "password": "ebcfc99aa881883fd9a06b78b50b140df65f2794470e444d57470345dacdb536",
+      "type": "admin"
+    },
+    {
+      "email": "especialista1@gmail.com",
+      "password": "c49a5446f7548ed1eb845d57ef4abef4289d2c0e84dbc2f38fadb13499a97ec8",
+      "type": "especialista"
+    }
+  ]
