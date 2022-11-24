@@ -516,6 +516,23 @@ def withdraw():
     db.session.commit()
     return redirect(request.referrer)
     
+@app.post('/specialist/<_type>/change')
+def change_odd(_type):
+    team_side = None
+    try:
+        enum_team_side = TeamSide(int(_type))
+    except ValueError:
+        try:
+            enum_team_side = TeamSide[_type.lower()]
+        except KeyError:
+            abort(404, "Lado não existente")
+    
+    team_side = enum_team_side.name
+    
+    game_id = request.form['game_id']
+    new_odd = request.form['new_odd']
+    db.session.execute(f"UPDATE team_game SET odd_{team_side} = '{new_odd}' WHERE game_id = '{game_id}'")   
+
 
     
 
