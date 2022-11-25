@@ -144,7 +144,7 @@ def games(_type):
 
     game_type = enum_game_type.value
     _games = db.session.execute(
-        f"SELECT * FROM {'no_' if not game_type.is_team_game else ''}team_game WHERE game_id IN (SELECT id FROM game WHERE game_type='{enum_game_type.name}') AND datetime >= DATETIME('now') AND game_status != 'closed'").all()
+        f"SELECT * FROM {'no_' if not game_type.is_team_game else ''}team_game WHERE game_id IN (SELECT id FROM game WHERE game_type='{enum_game_type.name}' AND datetime >= DATETIME('now') AND game_status != 'closed')").all()
 
     games = {row.game_id:row for row in _games}
 
@@ -248,9 +248,9 @@ def user_get_simple_bets():
     if not user:
         abort(404, "User not found")
 
-    bets_simple = db.session.execute(f"SELECT * FROM user_parcial_bet WHERE user_bet_id IN (SELECT id FROM user_bet WHERE user_id = '{user.id}' AND is_multiple = 'False')").all()
-    bets_multiple = db.session.execute(f"SELECT * FROM user_parcial_bet WHERE user_bet_id IN (SELECT id FROM user_bet WHERE user_id = '{user.id}' AND is_multiple = 'True')").all()
-
+    bets_simple = db.session.execute(f"SELECT * FROM user_parcial_bet WHERE user_bet_id IN (SELECT id FROM user_bet WHERE user_id = '{user.id}' AND is_multiple = 0)").all()
+    bets_multiple = db.session.execute(f"SELECT * FROM user_parcial_bet WHERE user_bet_id IN (SELECT id FROM user_bet WHERE user_id = '{user.id}' AND is_multiple = 1)").all()
+    
     return render_template(
         'account_bets.html',
         bets_simple = bets_simple,
@@ -302,7 +302,8 @@ def register():
     db.session.commit()
     session['id'] = user.id
     session['name'] = user.name
-    session['email'] = user.email 
+    session['email'] = user.email
+    session['type'] = 'user'
             
     return redirect(url_for('home'))
     

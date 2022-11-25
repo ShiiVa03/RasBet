@@ -30,7 +30,7 @@ db = SQLAlchemy(app)
 
 scheduler = APScheduler()
 
-specialized_accounts = json.load(open('accounts.json'))
+specialized_accounts = json.load(open('RasBet/accounts.json'))
 
 import RasBet.views as views
 import RasBet.models as models
