@@ -30,6 +30,8 @@
                     <td> -{{ transaction.value }}&euro; </td>
                     {% elif transaction.description == "Deposito" %}
                     <td> +{{ transaction.value }}&euro; </td>
+                    {% elif transaction.description == "Aposta" %}
+                    <td> -{{ transaction.value }}&euro; </td>
                     {%else%}
                     <td> +{{ transaction.value }}&euro; </td>
                     {% endif %}

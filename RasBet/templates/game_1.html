@@ -5,7 +5,7 @@
 {% if session['type'] == "admin" %}
 
 {% elif session['type'] == "especialista" %}
-<div style="width:70%; height:100%">
+<div style="margin:auto; align-self:center; width:80%; height:100%">
     <h1 style="text-align:center">Futebol</h1>
     <div style="overflow:auto; height:auto; width:100%; height:560px">
         {% for game in games.values() %}
@@ -13,14 +13,25 @@
             <div style="height:5px"></div>
             <div style="margin-left:1%;float:left; width:33%">
                 <h4 style="margin-top:1%"> {{ game.team_home }} - {{game.team_away}}</h4>
+                <h4 style="color:gray"> {{ game.datetime.split(' ', 1)[0] }}  </h4>
             </div>
-            <h4 style="color:gray"> {{ game.datetime.split(' ', 1)[0] }}  </h4>
-        </div>
-        <div style="display: flex; margin-top: 5px">
-            <form action="/specialist/{{ game.id }}/home/update" method="post" style="margin-left:5%; width:30%">
-                {{ game.team_home }}
-                <input type="text" placeholder="{{game.odd_home}}" name="new_odd" />
-            </form>
+            <div style="display: flex; margin-top: 5px; width: 30%">
+                <form action="/specialist/{{ game.id }}/home/update" method="post" style="margin-left: 5%; background-color: white; border: 2px solid black">
+                    {{ game.team_home }}
+                    <p></p>
+                    <input type="text" placeholder="Alterar odd:{{game.odd_home}}" name="new_odd" style="width:120px; border:1px solid black; margin:auto" />
+                </form>
+                <form action="/specialist/{{ game.id }}/draw/update" method="post" style="margin-left: 15%; background-color: white; border: 2px solid black">
+                    Empate
+                    <p></p>
+                    <input type="text" placeholder="Alterar odd:{{game.odd_draw}}" name="new_odd" style="width:120px; border:1px solid black; margin:auto" />
+                </form>
+                <form action="/specialist/{{ game.id }}/away/update" method="post" style="margin-left: 15%; background-color: white; border: 2px solid black">
+                    {{ game.team_away }}
+                    <p></p>
+                    <input type="text" placeholder="Alterar odd:{{game.odd_away}}" name="new_odd" style="width:120px; border:1px solid black; margin:auto" />
+                </form>
+            </div>
         </div>
         {% endfor %}
     </div>

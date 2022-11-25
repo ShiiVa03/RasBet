@@ -4,6 +4,7 @@ Routes and views for the flask application.
 
 
 import json
+from pickle import NONE
 import regex
 import hashlib
 import requests
@@ -118,7 +119,7 @@ Utility functions
 '''
 
 def bets_from_db():
-    result = db.session.execute("SELECT UB.id, UB.paid, UB.possible_gains, UP.bet_team, UB.user_id,TG.result, G.game_status, UB.is_multiple FROM user_parcial_bet UP\
+    result = db.session.execute("SELECT UB.id, UB.paid, UB.possible_gains, UP.bet_team, UB.user_id,TG.result, G.game_status, UB.is_multiple, TG.team_home, TG.team_away, UP.money FROM user_parcial_bet UP\
                             INNER JOIN user_bet UB\
                             ON UP.user_bet_id = UB.id\
                             INNER JOIN  game G\
@@ -261,12 +262,29 @@ def user_get_simple_bets():
     bets_multiple = {}
     
     for bet, res_list in bets.items():
-        if res_list[0][6] == 'False':
-            bets_simple.setdefault(bet, []).append(res_list)
+        new_result = []
+        for res in res_list:
+            gains = res[1]
+            team_bet = res[2]
+            result = res[4]            
+            home = res[7]
+            away = res[8]
+            money = res[9]           
+           
+            if team_bet == TeamSide.home:
+                value = home
+            elif team_bet == TeamSide.away:
+                value = away
+            else:
+                value = "Empate"
+            
+            new_result.append((home,away,result,value,gains,money))
+        if not res_list[0][6]:
+            bets_simple[bet] = new_result
         else:
-            bets_multiple.setdefault(bet, []).append(res_list)
+            bets_multiple[bet] = new_result
         
-    
+    print(bets_simple)
     return render_template(
         'account_bets.html',
         bets_simple = bets_simple,
@@ -565,6 +583,7 @@ def change_odd(game_id,_type):
     
     new_odd = request.form['new_odd']
     db.session.execute(f"UPDATE team_game SET odd_{team_side} = '{new_odd}' WHERE game_id = '{game_id}'")
+    db.session.commit()
     return redirect(request.referrer)
  
 @app.post('/admin/<game_id>/update/<state>')
@@ -586,6 +605,7 @@ def update_game_state(game_id, state):
         abort(404, "Não é possível mudar o estado do jogo para o mesmo")
     
     db.session.execute(f"UPDATE game SET game_status ='{game_state}' WHERE id = '{game_id}'")
+    db.session.commit()
     return redirect(request.referrer)
 
 
