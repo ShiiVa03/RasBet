@@ -111,7 +111,7 @@ def update_balances():
                             db.session.add(transaction)   
                             db.session.execute(f"UPDATE user_parcial_bet SET paid = 'True' WHERE id = '{tup[10]}'")
             else:
-                if len(filter(lambda x: x[4] == GameState.closed and x[3] != TeamSide.undefined and not x[0] and x[3] == x[1])) == len(res_list):
+                if len(list(filter(lambda x: x[4] == GameState.closed and x[3] != TeamSide.undefined and not x[0] and x[3] == x[1], res_list))) == len(res_list):
                     gains = res_list[0][8] * prod([x[9] for x in res_list])
                     new_user_balance = user_balance + gains
                     db.session.execute(f"UPDATE user SET balance = '{new_user_balance}' WHERE id = '{res_list[0][3]}'")
@@ -125,12 +125,7 @@ def update_balances():
                     ids = tuple([x[10] for x in res_list])
                     db.session.add(transaction)
                     db.session.execute(f"UPDATE user_parcial_bet SET paid = 'True' WHERE id IN {ids}")
-                    
-                    
-                    
-                
-           
-    
+
         db.session.commit()
         
                 
@@ -289,14 +284,15 @@ def user_get_simple_bets():
             
             gains = "{:.2f}".format(res[8] * res[9])
             team_bet = res[1]
+            print(team_bet)
             result = res[3]
             home = res[6]
             away = res[7]
             money = res[8]           
             
-            if team_bet == TeamSide.home:
+            if team_bet == TeamSide.home.name:
                 value = home
-            elif team_bet == TeamSide.away:
+            elif team_bet == TeamSide.away.name:
                 value = away
             else:
                 value = "Empate"
@@ -306,13 +302,14 @@ def user_get_simple_bets():
         if not res_list[0][5]:
             bets_simple[bet] = new_result
         else:
-            gains = res_list[0][8] * prod([x[9] for x in res_list])
+            gains =  "{:.2f}".format(res_list[0][8] * prod([x[9] for x in res_list]))
+            new_tuples = []
             for tup in new_result:
                 x = list(tup)
                 x[4] = gains
                 new_tup = tuple(x)
-                new_result.append(new_tup)
-            bets_multiple[bet] =  new_result
+                new_tuples.append(new_tup)
+            bets_multiple[bet] =  new_tuples
         
     print(bets_simple)
     return render_template(
@@ -527,6 +524,8 @@ def bet_simple():
         balance = user_balance - total_spent,
         description = "Aposta" 
     )
+    
+    user.balance -= total_spent
     db.session.add(transaction)
     db.session.add(user_bet)
     db.session.commit()
@@ -589,6 +588,7 @@ def withdraw():
         balance = user.balance,
         description = "Levantamento"
     )
+    
     db.session.add(transaction)    
     db.session.commit()
     return redirect(request.referrer)
