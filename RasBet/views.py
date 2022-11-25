@@ -92,10 +92,11 @@ def update_balances():
         x = bets_from_db()
         for bet, res_list in x.items():
             for tup in res_list:
-                if not tup[0] and tup[4] != TeamSide.undefined and tup[5] == GameState.closed:
-                    if tup[4] == tup[2]:
+                if not tup[0] and tup[3] != TeamSide.undefined and tup[4] == GameState.closed:
+                    if tup[3] == tup[1]:
                         user_balance = db.session.execute(f"SELECT balance FROM user WHERE id = '{tup[3]}'").scalar()
-                        new_user_balance = user_balance + tup[1]
+                        if not tup[5]:
+                            new_user_balance = user_balance + 
                         
                         db.session.execute(f"UPDATE user SET balance = '{new_user_balance}' WHERE id = '{tup[3]}'")
                         transaction = Transaction(
@@ -118,7 +119,7 @@ Utility functions
 '''
 
 def bets_from_db():
-    result = db.session.execute("SELECT UB.id, UB.paid, UB.possible_gains, UP.bet_team, UB.user_id,TG.result, G.game_status, UB.is_multiple FROM user_parcial_bet UP\
+    result = db.session.execute("SELECT UB.id, UP.paid, UP.bet_team, UB.user_id,TG.result, G.game_status, UB.is_multiple,UB.money FROM user_parcial_bet UP\
                             INNER JOIN user_bet UB\
                             ON UP.user_bet_id = UB.id\
                             INNER JOIN  game G\
@@ -261,10 +262,28 @@ def user_get_simple_bets():
     bets_multiple = {}
     
     for bet, res_list in bets.items():
-        if res_list[0][6] == 'False':
-            bets_simple.setdefault(bet, []).append(res_list)
+        new_result = []
+        for res in res_list:
+            gains = res[1]
+            team_bet = res[2]
+            result = res[4]
+            home = res[7]
+            away = res[8]
+            money = res[9]           
+           
+            if team_bet == TeamSide.home:
+                value = home
+            elif team_bet == TeamSide.away:
+                value = away
+            else:
+                value = "Empate"
+            
+            new_result.append((home,away,result,value,gains,money))
+            
+        if not res_list[0][6]:
+            bets_simple[bet] = new_result
         else:
-            bets_multiple.setdefault(bet, []).append(res_list)
+            bets_multiple[bet] = new_result
         
     
     return render_template(
@@ -423,7 +442,8 @@ def add_tmp_simple_bet():
         game_id = int(request.form['game_id']),
         odd = float(request.form['odd']),
         money = 0.0,
-        bet_team = team_side
+        bet_team = team_side,
+        paid = False
     )
     
     tmp_bets.add(game, user_partial_bet)
@@ -469,8 +489,6 @@ def bet_simple():
     user_bet = UserBet(
         user_id = session['id'],
         is_multiple = tmp_bets.is_multiple_selected,
-        paid = False,
-        possible_gains = session['tmp_bets'].total_gains()
     )
     
     transaction = Transaction(
@@ -563,8 +581,13 @@ def change_odd(game_id,_type):
     team_side = enum_team_side.name
     game_id = int(game_id)
     
+    print(f"odd_{team_side}")
+  
+    print(f"'{game_id}'")
     new_odd = request.form['new_odd']
+    print(f"'{new_odd}'")
     db.session.execute(f"UPDATE team_game SET odd_{team_side} = '{new_odd}' WHERE game_id = '{game_id}'")
+    db.session.commit()
     return redirect(request.referrer)
  
 @app.post('/admin/<game_id>/update/<state>')
@@ -586,6 +609,7 @@ def update_game_state(game_id, state):
         abort(404, "Não é possível mudar o estado do jogo para o mesmo")
     
     db.session.execute(f"UPDATE game SET game_status ='{game_state}' WHERE id = '{game_id}'")
+    db.session.commit()
     return redirect(request.referrer)
 
 

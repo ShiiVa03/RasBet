@@ -86,8 +86,7 @@ class UserBet(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.ForeignKey(User.id))
     is_multiple = db.Column(db.Boolean, nullable=False)
-    paid = db.Column(db.Boolean)
-    possible_gains = db.Column(db.Float)
+    
 
 class UserParcialBet(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -97,3 +96,4 @@ class UserParcialBet(db.Model):
     money = db.Column(db.Float, nullable=False)
     bet_team = db.Column(db.Enum(TeamSide))
     bet_no_team = db.Column(db.ForeignKey(NoTeamGamePlayer.id))
+    paid = db.Column(db.Boolean)
