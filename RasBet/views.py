@@ -324,6 +324,7 @@ def login():
             
             session['email'] = email
             session['type'] = account.get("type")
+            session['name'] = account.get("type")
             
             if session['type'] == "admin":
                 return redirect(url_for('home')) # pag do admin
@@ -368,10 +369,12 @@ def edit():
 
 @app.post('/logout/')
 def log_out():
-    session.pop('id')
+    if session['type'] == "user":
+        session.pop('id')
+        session.pop('tmp_bets')
+
     session.pop('name')
     session.pop('email')
-    session.pop('tmp_bets')
     session.pop('type')
     return redirect(url_for('home')) 
 
@@ -529,7 +532,7 @@ def withdraw():
     
 @app.post('/specialist/<game_id>/<_type>/update')
 def change_odd(game_id,_type):
-    if session['type'] != 'specialist':
+    if session['type'] != 'especialista':
         abort(404, "You must be a specialist!")
         
     team_side = None
@@ -545,7 +548,8 @@ def change_odd(game_id,_type):
     game_id = int(game_id)
     
     new_odd = request.form['new_odd']
-    db.session.execute(f"UPDATE team_game SET odd_{team_side} = '{new_odd}' WHERE game_id = '{game_id}'")   
+    db.session.execute(f"UPDATE team_game SET odd_{team_side} = '{new_odd}' WHERE game_id = '{game_id}'")
+    return redirect(request.referrer)
  
 @app.post('/admin/<game_id>/update/<state>')
 def update_game_state(game_id, state):
@@ -566,7 +570,7 @@ def update_game_state(game_id, state):
         abort(404, "Não é possível mudar o estado do jogo para o mesmo")
     
     db.session.execute(f"UPDATE game SET game_status ='{game_state}' WHERE id = '{game_id}'")
-    
+    return redirect(request.referrer)
 
 
 class TmpBets:

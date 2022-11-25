@@ -63,6 +63,14 @@
     border-radius:15px;
 }
 
+.lgout {
+    background-color: red;
+    color: white;
+    display: inline-block;
+    text-align: center;
+    border: 0px;
+}
+
 a.btnStack:hover {
     background-color: red;
     color: white;

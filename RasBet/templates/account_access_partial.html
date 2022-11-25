@@ -1,20 +1,31 @@
 {% block content %}
 
 {% if session.get('name') %}
+    {% if session.get('type') == "user" %}
 
-        <form id="logoutForm" action="/logout/" method="post" class="navbar-right">
+<form id="logoutForm" action="/logout/" method="post" class="navbar-right">
 
-            <ul class="nav navbar-nav navbar-right">
-                <li><a href="{{ url_for('edit_account') }}">Bem Vindo, {{ session['name'] }}</a></li>
-            </ul>
-        </form>
+    <ul class="nav navbar-nav navbar-right">
+        <li><a href="{{ url_for('edit_account') }}">Bem Vindo, {{ session['name'] }}</a></li>
+    </ul>
+</form>
 
-{% else %}
+    {% else%}
+<form id="logoutForm" action="/logout/" method="post" class="navbar-right">
+    <div style="height:10px"></div>
+    <ul class="nav navbar-nav navbar-right">
+        <li><button class="lgout" type="submit">Sair</button></li>
+    </ul>
+</form>
 
-        <ul class="nav navbar-nav navbar-right">
-            <li><a href="{{ url_for('account_access') }}">Conta</a></li>
-        </ul>
+    {% endif %}
 
-{% endif %}
+    {% else %}
 
-{% endblock content %}
+    <ul class="nav navbar-nav navbar-right">
+        <li><a href="{{ url_for('account_access') }}">Conta</a></li>
+    </ul>
+
+    {% endif %}
+
+    {% endblock content %}

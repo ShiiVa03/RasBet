@@ -46,7 +46,7 @@
 
     <div class="container body-content">
         {% block content %}{% endblock %}
-        {% if  url_for('edit_account') in request.path %}
+        {% if  url_for('edit_account') in request.path or session['type'] == "especialista" or session['type'] == "admin" %}
         {% else %}
         <!--Mostrar boletim-->
         <div style="margin-left:10%; float: right; width: 20%; height: 100%">
@@ -115,7 +115,7 @@
                     Montante:
                     <form action="/bet/tmp/set/" method="post">
                         {% if session["tmp_bets"].get_bet_team_game_info() %}
-                        <input type="text" placeholder=" {{ session["tmp_bets"].multiple[0][1].money }} &euro;" name="amount" style="width:50%;margin-left:50%"/>
+                        <input type="text" placeholder=" {{ session["tmp_bets"].multiple[0][1].money }} &euro;" name="amount" style="width:50%;margin-left:50%" />
                         {% else %}
                         <input type="text" placeholder=" 0.0 &euro;" name="amount" style="width:50%;margin-left:50%" />
                         {% endif %}
