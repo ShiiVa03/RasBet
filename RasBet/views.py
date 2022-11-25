@@ -89,18 +89,7 @@ Background Threads
 @scheduler.task('interval', id='update_balances', seconds=5)
 def update_balances():
     with app.app_context():
-        result = db.session.execute("SELECT UB.id, UB.paid, UB.possible_gains, UP.bet_team, UB.user_id,TG.result,G.game_status FROM user_parcial_bet UP\
-                            INNER JOIN user_bet UB\
-                            ON UP.user_bet_id = UB.id\
-                            INNER JOIN  game G\
-                            ON UP.game_id = G.id\
-                            INNER JOIN team_game TG\
-                            ON TG.game_id = G.id").all()
-        x = {}
-        
-        for bet, *res in result:
-            x.setdefault(bet, []).append(res)
-        
+        x = bets_from_db()
         for bet, res_list in x.items():
             for tup in res_list:
                 if not tup[0] and tup[4] != TeamSide.undefined and tup[5] == GameState.closed:
@@ -124,7 +113,26 @@ def update_balances():
         
                 
             
+'''
+Utility functions
+'''
 
+def bets_from_db():
+    result = db.session.execute("SELECT UB.id, UB.paid, UB.possible_gains, UP.bet_team, UB.user_id,TG.result, G.game_status, UB.is_multiple FROM user_parcial_bet UP\
+                            INNER JOIN user_bet UB\
+                            ON UP.user_bet_id = UB.id\
+                            INNER JOIN  game G\
+                            ON UP.game_id = G.id\
+                            INNER JOIN team_game TG\
+                            ON TG.game_id = G.id").all()
+    x = {}
+        
+    for bet, *res in result:
+        x.setdefault(bet, []).append(res)
+    
+    return x
+        
+    
 
 '''
 WEB
@@ -247,9 +255,17 @@ def user_get_simple_bets():
     
     if not user:
         abort(404, "User not found")
-
-    bets_simple = db.session.execute(f"SELECT * FROM user_parcial_bet WHERE user_bet_id IN (SELECT id FROM user_bet WHERE user_id = '{user.id}' AND is_multiple = 0)").all()
-    bets_multiple = db.session.execute(f"SELECT * FROM user_parcial_bet WHERE user_bet_id IN (SELECT id FROM user_bet WHERE user_id = '{user.id}' AND is_multiple = 1)").all()
+    
+    bets = bets_from_db()
+    bets_simple = {}
+    bets_multiple = {}
+    
+    for bet, res_list in bets.items():
+        if res_list[0][6] == 'False':
+            bets_simple.setdefault(bet, []).append(res_list)
+        else:
+            bets_multiple.setdefault(bet, []).append(res_list)
+        
     
     return render_template(
         'account_bets.html',
