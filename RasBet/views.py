@@ -305,9 +305,9 @@ def user_get_simple_bets():
             bets_simple[bet] = new_result
         else:
             gains = res_list[0][8] * prod([x[9] for x in res_list])
-            for tup in new_result:
-                tup[4] = gains
-            bets_multiple[bet] =  new_result
+            
+                
+            bets_multiple[bet] = 1
         
     print(bets_simple)
     return render_template(
