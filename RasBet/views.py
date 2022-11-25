@@ -89,18 +89,7 @@ Background Threads
 @scheduler.task('interval', id='update_balances', seconds=5)
 def update_balances():
     with app.app_context():
-        result = db.session.execute("SELECT UB.id, UB.paid, UB.possible_gains, UP.bet_team, UB.user_id,TG.result,G.game_status FROM user_parcial_bet UP\
-                            INNER JOIN user_bet UB\
-                            ON UP.user_bet_id = UB.id\
-                            INNER JOIN  game G\
-                            ON UP.game_id = G.id\
-                            INNER JOIN team_game TG\
-                            ON TG.game_id = G.id").all()
-        x = {}
-        
-        for bet, *res in result:
-            x.setdefault(bet, []).append(res)
-        
+        x = bets_from_db()
         for bet, res_list in x.items():
             for tup in res_list:
                 if not tup[0] and tup[4] != TeamSide.undefined and tup[5] == GameState.closed:
@@ -124,7 +113,26 @@ def update_balances():
         
                 
             
+'''
+Utility functions
+'''
 
+def bets_from_db():
+    result = db.session.execute("SELECT UB.id, UB.paid, UB.possible_gains, UP.bet_team, UB.user_id,TG.result, G.game_status, UB.is_multiple FROM user_parcial_bet UP\
+                            INNER JOIN user_bet UB\
+                            ON UP.user_bet_id = UB.id\
+                            INNER JOIN  game G\
+                            ON UP.game_id = G.id\
+                            INNER JOIN team_game TG\
+                            ON TG.game_id = G.id").all()
+    x = {}
+        
+    for bet, *res in result:
+        x.setdefault(bet, []).append(res)
+    
+    return x
+        
+    
 
 '''
 WEB
@@ -144,7 +152,7 @@ def games(_type):
 
     game_type = enum_game_type.value
     _games = db.session.execute(
-        f"SELECT * FROM {'no_' if not game_type.is_team_game else ''}team_game WHERE game_id IN (SELECT id FROM game WHERE game_type='{enum_game_type.name}') AND datetime >= DATETIME('now') AND game_status != 'closed'").all()
+        f"SELECT * FROM {'no_' if not game_type.is_team_game else ''}team_game WHERE game_id IN (SELECT id FROM game WHERE game_type='{enum_game_type.name}' AND datetime >= DATETIME('now') AND game_status != 'closed')").all()
 
     games = {row.game_id:row for row in _games}
 
@@ -247,10 +255,18 @@ def user_get_simple_bets():
     
     if not user:
         abort(404, "User not found")
-
-    bets_simple = db.session.execute(f"SELECT * FROM user_parcial_bet WHERE user_bet_id IN (SELECT id FROM user_bet WHERE user_id = '{user.id}' AND is_multiple = 'False')").all()
-    bets_multiple = db.session.execute(f"SELECT * FROM user_parcial_bet WHERE user_bet_id IN (SELECT id FROM user_bet WHERE user_id = '{user.id}' AND is_multiple = 'True')").all()
-
+    
+    bets = bets_from_db()
+    bets_simple = {}
+    bets_multiple = {}
+    
+    for bet, res_list in bets.items():
+        if res_list[0][6] == 'False':
+            bets_simple.setdefault(bet, []).append(res_list)
+        else:
+            bets_multiple.setdefault(bet, []).append(res_list)
+        
+    
     return render_template(
         'account_bets.html',
         bets_simple = bets_simple,
@@ -302,7 +318,7 @@ def register():
     db.session.commit()
     session['id'] = user.id
     session['name'] = user.name
-    session['email'] = user.email 
+    session['email'] = user.email   
             
     return redirect(url_for('home'))
     
@@ -544,7 +560,7 @@ def change_odd(game_id,_type):
     game_id = int(game_id)
     
     new_odd = request.form['new_odd']
-    db.session.execute(f"UPDATE team_game SET odd_{team_side} = '{new_odd}' WHERE game_id = '{game_id}'")   
+    db.session.execute(f"UPDATE team_game SET odd_{team_side} = '{new_odd}' WHERE game_id = '{game_id}'")
  
 @app.post('/admin/<game_id>/update/<state>')
 def update_game_state(game_id, state):
