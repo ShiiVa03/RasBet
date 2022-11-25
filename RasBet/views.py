@@ -318,7 +318,8 @@ def register():
     db.session.commit()
     session['id'] = user.id
     session['name'] = user.name
-    session['email'] = user.email   
+    session['email'] = user.email
+    session['type'] = 'user'
             
     return redirect(url_for('home'))
     
