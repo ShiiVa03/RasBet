@@ -284,30 +284,35 @@ def user_get_simple_bets():
 
     for bet, res_list in bets.items():
         new_result = []
+       
         for res in res_list:
-            gains = res[8] * res[9]
+            
+            gains = "{:.2f}".format(res[8] * res[9])
             team_bet = res[1]
             result = res[3]
             home = res[6]
             away = res[7]
             money = res[8]           
-           
+            
             if team_bet == TeamSide.home:
                 value = home
             elif team_bet == TeamSide.away:
                 value = away
             else:
                 value = "Empate"
-    
-            new_result.append((home,away,result,value,gains,money))
             
-        if not res_list[0][6]:
+            new_result.append((home,away,result,value,gains,money))
+    
+        if not res_list[0][5]:
             bets_simple[bet] = new_result
         else:
             gains = res_list[0][8] * prod([x[9] for x in res_list])
-            
-                
-            bets_multiple[bet] = 1
+            for tup in new_result:
+                x = list(tup)
+                x[4] = gains
+                new_tup = tuple(x)
+                new_result.append(new_tup)
+            bets_multiple[bet] =  new_result
         
     print(bets_simple)
     return render_template(
