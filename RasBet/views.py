@@ -14,7 +14,7 @@ from dateutil.relativedelta import relativedelta
 from flask import render_template, session, url_for, abort, request, redirect
 from RasBet import app, db, scheduler, specialized_accounts
 
-from .models import TeamGame, User, Transaction, Game, GameType, UserBet, UserParcialBet, TeamSide
+from .models import TeamGame, User, Transaction, Game, GameType, UserBet, UserParcialBet, TeamSide, GameState
 from math import prod
 
 
@@ -43,13 +43,15 @@ def get_football_games():
             if not db_game:
                 db_game = Game(
                     api_id=game['id'],
-                    game_type=GameType.football
+                    game_type=GameType.football,
+                    game_status = GameState.active
                 )
                 db.session.add(db_game)
                 db.session.commit()
 
                 if game['scores']:
                     home_result, away_result = list(map(int, game['scores'].split('x')))
+                    db_game.game_status = GameState.closed
 
                     if home_result > away_result:
                         result = TeamSide.home
@@ -87,7 +89,7 @@ Background Threads
 @scheduler.task('interval', id='update_balances', seconds=5)
 def update_balances():
     with app.app_context():
-        result = db.session.execute("SELECT UB.id, UB.paid, UB.possible_gains, UP.bet_team, UB.user_id,TG.result FROM user_parcial_bet UP\
+        result = db.session.execute("SELECT UB.id, UB.paid, UB.possible_gains, UP.bet_team, UB.user_id,TG.result,G.game_status FROM user_parcial_bet UP\
                             INNER JOIN user_bet UB\
                             ON UP.user_bet_id = UB.id\
                             INNER JOIN  game G\
@@ -101,11 +103,11 @@ def update_balances():
         
         for bet, res_list in x.items():
             for tup in res_list:
-                if not tup[0] and tup[4] != TeamSide.undefined:
+                if not tup[0] and tup[4] != TeamSide.undefined and tup[5] == GameState.closed:
                     if tup[4] == tup[2]:
                         user_balance = db.session.execute(f"SELECT balance FROM user WHERE id = '{tup[3]}'").scalar()
-                        print(user_balance)
                         new_user_balance = user_balance + tup[1]
+                        
                         db.session.execute(f"UPDATE user SET balance = '{new_user_balance}' WHERE id = '{tup[3]}'")
                         transaction = Transaction(
                             user_id = tup[3],
@@ -142,7 +144,7 @@ def games(_type):
 
     game_type = enum_game_type.value
     _games = db.session.execute(
-        f"SELECT * FROM {'no_' if not game_type.is_team_game else ''}team_game WHERE game_id IN (SELECT id FROM game WHERE game_type='{enum_game_type.name}') AND datetime >= DATETIME('now')").all()
+        f"SELECT * FROM {'no_' if not game_type.is_team_game else ''}team_game WHERE game_id IN (SELECT id FROM game WHERE game_type='{enum_game_type.name}') AND datetime >= DATETIME('now') AND game_status != 'closed'").all()
 
     games = {row.game_id:row for row in _games}
 
@@ -158,7 +160,7 @@ def games(_type):
 @app.route('/home/')
 def home():
     """Renders the home page."""
-    _games = db.session.execute("SELECT * FROM team_game WHERE game_id IN (SELECT id FROM game WHERE date(datetime)=DATE('now'))").all()
+    _games = db.session.execute("SELECT * FROM team_game WHERE game_id IN (SELECT id FROM game WHERE date(datetime)=DATE('now') AND game_status != 'closed')").all()
 
     games = {row.game_id:row for row in _games}
     
@@ -319,10 +321,10 @@ def login():
             if account.get("password") != password:
                 abort(404, "Wrong credentials")
             
-            session['name'] = account.get("type")
             session['email'] = email
+            session['type'] = account.get("type")
             
-            if account.get("type") == "admin":
+            if session['type'] == "admin":
                 return redirect(url_for('home')) # pag do admin
             else:
                 return redirect(url_for('home')) # pag do especialista
@@ -335,6 +337,7 @@ def login():
     session['id'] = user.id
     session['name'] = user.name
     session['email'] = user.email
+    session['type'] = 'user'
         
     return redirect(url_for('home'))
 
@@ -368,14 +371,21 @@ def log_out():
     session.pop('name')
     session.pop('email')
     session.pop('tmp_bets')
+    session.pop('type')
     return redirect(url_for('home')) 
 
 @app.post('/bet/tmp/add/')
 def add_tmp_simple_bet():
 
-    tmp_bets = session['tmp_bets']
+    tmp_bets = session['tmp_bets'] 
+    game_id = int(request.form['game_id'])
     
-    game = db.get_or_404(TeamGame, int(request.form['game_id']))   
+    game_status = db.session.execute(f"SELECT game_status FROM game WHERE id = '{game_id}'")
+    
+    if game_status == GameState.suspended:
+        abort(501, "Game is suspended")
+        
+    game = db.get_or_404(TeamGame, game_id)   
     
     team_side = request.form['bet_team']
     if team_side == "home":
@@ -516,8 +526,11 @@ def withdraw():
     db.session.commit()
     return redirect(request.referrer)
     
-@app.post('/specialist/<_type>/change')
-def change_odd(_type):
+@app.post('/specialist/<game_id>/<_type>/update')
+def change_odd(game_id,_type):
+    if session['type'] != 'specialist':
+        abort(404, "You must be a specialist!")
+        
     team_side = None
     try:
         enum_team_side = TeamSide(int(_type))
@@ -528,12 +541,30 @@ def change_odd(_type):
             abort(404, "Lado não existente")
     
     team_side = enum_team_side.name
+    game_id = int(game_id)
     
-    game_id = request.form['game_id']
     new_odd = request.form['new_odd']
     db.session.execute(f"UPDATE team_game SET odd_{team_side} = '{new_odd}' WHERE game_id = '{game_id}'")   
-
-
+ 
+@app.post('/admin/<game_id>/update/<state>')
+def update_game_state(game_id, state):
+    
+    game_state = None
+    try:
+        enum_game_state = GameState(int(state))
+    except ValueError:
+        try:
+            enum_game_state = GameState[state.lower()]
+        except KeyError:
+            abort(404, "Tipo de estado nao existente")
+    
+    game_state = enum_game_state.name    
+    game_status = db.session.execute(f"SELECT game_status FROM game WHERE id = '{int(game_id)}'")
+    
+    if game_status == game_state:
+        abort(404, "Não é possível mudar o estado do jogo para o mesmo")
+    
+    db.session.execute(f"UPDATE game SET game_status ='{game_state}' WHERE id = '{game_id}'")
     
 
 

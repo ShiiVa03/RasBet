@@ -27,7 +27,10 @@ class GameType(enum.Enum):
     basketball = MetaInfoGame(3, "BasketBall", True)
     motogp = MetaInfoGame(4, "MotoGP", False)
 
-
+class GameState(enum.Enum):
+    active = 0
+    suspended = 1
+    closed = 2
 
 
 class User(db.Model):
@@ -51,6 +54,7 @@ class Game(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     api_id = db.Column(db.String, nullable=False)
     game_type = db.Column(db.Enum(GameType), nullable=False)
+    game_status = db.Column(db.Enum(GameState), nullable=False)
 
 
 class TeamGame(db.Model):
@@ -74,6 +78,7 @@ class NoTeamGamePlayer(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     no_team_game_id = db.Column(db.ForeignKey(NoTeamGame.id))
     name = db.Column(db.String(100), nullable=False)
+    odd = db.Column(db.Float)
     placement = db.Column(db.Integer, nullable=False)
 
 
