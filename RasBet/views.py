@@ -4,6 +4,7 @@ Routes and views for the flask application.
 
 
 import json
+from pickle import NONE
 import regex
 import hashlib
 import requests
@@ -119,7 +120,7 @@ Utility functions
 '''
 
 def bets_from_db():
-    result = db.session.execute("SELECT UB.id, UP.paid, UP.bet_team, UB.user_id,TG.result, G.game_status, UB.is_multiple,UB.money FROM user_parcial_bet UP\
+    result = db.session.execute("SELECT UB.id, UB.paid, UB.possible_gains, UP.bet_team, UB.user_id,TG.result, G.game_status, UB.is_multiple, TG.team_home, TG.team_away, UP.money FROM user_parcial_bet UP\
                             INNER JOIN user_bet UB\
                             ON UP.user_bet_id = UB.id\
                             INNER JOIN  game G\
@@ -266,7 +267,11 @@ def user_get_simple_bets():
         for res in res_list:
             gains = res[1]
             team_bet = res[2]
+<<<<<<< HEAD
             result = res[4]
+=======
+            result = res[4]            
+>>>>>>> 0543c77c7f994dd9471f2860014c8cc51370c2be
             home = res[7]
             away = res[8]
             money = res[9]           
@@ -279,13 +284,16 @@ def user_get_simple_bets():
                 value = "Empate"
             
             new_result.append((home,away,result,value,gains,money))
+<<<<<<< HEAD
             
+=======
+>>>>>>> 0543c77c7f994dd9471f2860014c8cc51370c2be
         if not res_list[0][6]:
             bets_simple[bet] = new_result
         else:
             bets_multiple[bet] = new_result
         
-    
+    print(bets_simple)
     return render_template(
         'account_bets.html',
         bets_simple = bets_simple,

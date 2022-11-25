@@ -3,20 +3,34 @@
 {% block content %}
 
 <div style="height:75px"></div>
-<div style=" margin: auto; width: 60%; height:420px; background-color: lightgray; border-radius: 15px">
+<div style=" margin: auto; width: 60%; height:420px; background-color: lightgray; border-radius: 15px;">
     <div style="height:5px"></div>
-    <h4 style="text-align: center; font-weight: 700">{{session['name']}}</h4>
+    <h4 style="text-align: center; font-weight: 700">{{ session['name'] }}</h4>
     <h4 style="text-align: center; font-weight: 700">Hist&oacute;rico de Apostas</h4>
     <div style="text-align:center; margin-top: 3%; width: auto ">
         <button id="btnS" onclick="showSimples()" style="background-color: red; border-color: red; width: 150px; height: 40px; font-size: 20px; margin: 0 10%"><b>Simples</b></button>
         <button id="btnM" onclick="showMultipla()" style="background-color: white; border-color: red; width: 150px; height: 40px; font-size: 20px; margin: 0 10%"><b>Multipla</b></button>
     </div>
-    <div id="Simples" style=" margin: auto; width: 80%; height:auto; display:block">
-        Ola simnples
-        {% for bet in bets_simple %}
-        <div style="border: 1px solid black;">
-            <div> {{ bet.team_home }} Ola </div>
+    <div id="Simples" style=" margin: auto; width: 80%; height: 260px; display: block; overflow: auto; margin-top:5%">
+        {% for betS in bets_simple.values() %}
+            {% for (home,away,result,value,gains,money) in betS %}
+        <div style="border: 1px solid black; margin-top:1%; height:90px; width:420px;margin-left:auto;margin-right:auto">
+            <div style="margin-left:1%;float:left; width:40%">
+                <h5 style="font-weight: 700; margin-bottom:0; margin-top:30px">{{ home }} - {{ away }}</h5>
+                <small style="color:gray; margin-top:-20%; margin:auto">Aposta: {{ value }}</small>
+            </div>
+            <div>
+                <h5 style="font-weight: 700;"> Montante apostado: {{ money }} &euro; </h5>
+                <h5 style="font-weight: 700;">Possiveis ganhos: {{ gains }} &euro;</h5>
+            </div>
+
+            {% if result == "undefined" %}
+            Jogo nao realizado 
+            {% else %}
+            {{result}}
+            {%endif%}
         </div>
+        {%endfor%}
         {% endfor %}
     </div>
 
