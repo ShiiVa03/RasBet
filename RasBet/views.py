@@ -92,23 +92,43 @@ def update_balances():
     with app.app_context():
         x = bets_from_db()
         for bet, res_list in x.items():
-            for tup in res_list:
-                if not tup[0] and tup[3] != TeamSide.undefined and tup[4] == GameState.closed:
-                    if tup[3] == tup[1]:
-                        user_balance = db.session.execute(f"SELECT balance FROM user WHERE id = '{tup[3]}'").scalar()
-                        if not tup[5]:
-                            new_user_balance = user_balance + 
-                        
-                        db.session.execute(f"UPDATE user SET balance = '{new_user_balance}' WHERE id = '{tup[3]}'")
-                        transaction = Transaction(
-                            user_id = tup[3],
-                            datetime = datetime.now(),
-                            value = tup[1],
-                            balance = new_user_balance,
-                            description = "Aposta Ganha"
-                        )
-                        db.session.add(transaction)   
-                    db.session.execute(f"UPDATE user_bet SET paid = 'True' WHERE id = '{bet}'")
+            user_balance = db.session.execute(f"SELECT balance FROM user WHERE id = '{res_list[0][3]}'").scalar()
+            if not res_list[0][5]:
+                for tup in res_list:
+                    if not tup[0] and tup[3] != TeamSide.undefined and tup[4] == GameState.closed:
+                        if tup[3] == tup[1]:
+                            
+                            gains = tup[7] * tup[8]  
+                            new_user_balance = user_balance + gains                      
+                            db.session.execute(f"UPDATE user SET balance = '{new_user_balance}' WHERE id = '{tup[3]}'")
+                            transaction = Transaction(
+                                user_id = tup[3],
+                                datetime = datetime.now(),
+                                value = gains,
+                                balance = new_user_balance,
+                                description = "Aposta Ganha"
+                            )
+                            db.session.add(transaction)   
+                            db.session.execute(f"UPDATE user_parcial_bet SET paid = 'True' WHERE id = '{tup[10]}'")
+            else:
+                if len(filter(lambda x: x[4] == GameState.closed and x[3] != TeamSide.undefined and not x[0] and x[3] == x[1])) == len(res_list):
+                    gains = res_list[0][8] * prod([x[9] for x in res_list])
+                    new_user_balance = user_balance + gains
+                    db.session.execute(f"UPDATE user SET balance = '{new_user_balance}' WHERE id = '{res_list[0][3]}'")
+                    transaction = Transaction(
+                                user_id = res_list[0][3],
+                                datetime = datetime.now(),
+                                value = gains,
+                                balance = new_user_balance,
+                                description = "Aposta Ganha"
+                            )
+                    ids = tuple([x[10] for x in res_list])
+                    db.session.add(transaction)
+                    db.session.execute(f"UPDATE user_parcial_bet SET paid = 'True' WHERE id IN {ids}")
+                    
+                    
+                    
+                
            
     
         db.session.commit()
@@ -120,7 +140,7 @@ Utility functions
 '''
 
 def bets_from_db():
-    result = db.session.execute("SELECT UB.id, UB.paid, UB.possible_gains, UP.bet_team, UB.user_id,TG.result, G.game_status, UB.is_multiple, TG.team_home, TG.team_away, UP.money FROM user_parcial_bet UP\
+    result = db.session.execute("SELECT UB.id, UP.paid, UP.bet_team, UB.user_id,TG.result, G.game_status, UB.is_multiple, TG.team_home, TG.team_away, UP.money, Up.odd, UP.id FROM user_parcial_bet UP\
                             INNER JOIN user_bet UB\
                             ON UP.user_bet_id = UB.id\
                             INNER JOIN  game G\
@@ -261,20 +281,16 @@ def user_get_simple_bets():
     bets = bets_from_db()
     bets_simple = {}
     bets_multiple = {}
-    
+
     for bet, res_list in bets.items():
         new_result = []
         for res in res_list:
-            gains = res[1]
-            team_bet = res[2]
-<<<<<<< HEAD
-            result = res[4]
-=======
-            result = res[4]            
->>>>>>> 0543c77c7f994dd9471f2860014c8cc51370c2be
-            home = res[7]
-            away = res[8]
-            money = res[9]           
+            gains = res[8] * res[9]
+            team_bet = res[1]
+            result = res[3]
+            home = res[6]
+            away = res[7]
+            money = res[8]           
            
             if team_bet == TeamSide.home:
                 value = home
@@ -282,16 +298,16 @@ def user_get_simple_bets():
                 value = away
             else:
                 value = "Empate"
-            
+    
             new_result.append((home,away,result,value,gains,money))
-<<<<<<< HEAD
             
-=======
->>>>>>> 0543c77c7f994dd9471f2860014c8cc51370c2be
         if not res_list[0][6]:
             bets_simple[bet] = new_result
         else:
-            bets_multiple[bet] = new_result
+            gains = res_list[0][8] * prod([x[9] for x in res_list])
+            for tup in new_result:
+                tup[4] = gains
+            bets_multiple[bet] =  new_result
         
     print(bets_simple)
     return render_template(
