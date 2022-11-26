@@ -70,8 +70,3 @@
     text-align: center;
     border: 0px;
 }
-
-a.btnStack:hover {
-    background-color: red;
-    color: white;
-}

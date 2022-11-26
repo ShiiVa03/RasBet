@@ -6,14 +6,14 @@
 
 {% elif session['type'] == "especialista" %}
 <div style="margin:auto; align-self:center; width:80%; height:100%">
-    <h1 style="text-align:center">Basquetbol</h1>
+    <h1 style="text-align:center">MotoGP</h1>
     <div style="overflow:auto; height:auto; width:100%; height:560px">
         {% for game in games.values() %}
         <div style="background-color: lightgray; margin: 20px 0;color:black ; height:75px">
             <div style="height:5px"></div>
             <div style="margin-left:1%;float:left; width:33%">
                 <h4 style="margin-top:1%"> {{ game.team_home }} - {{game.team_away}}</h4>
-                <h4 style="color:gray"> {{ game.datetime.split(' ', 1)[0] }}  </h4>
+                <h4 style="color:gray"> {{ game[0].datetime.split(' ', 1)[0] }}  </h4>
             </div>
             <div style="display: flex; margin-top: 5px; width: 30%">
                 <form action="/specialist/{{ game.id }}/home/update" method="post" style="margin-left: 5%; background-color: white; border: 2px solid black">
@@ -35,212 +35,114 @@
 {% else %}
 <div style="float: left; width:70%; height:100%">
 
-    <h1 style="text-align:center">Basquetebol</h1>
+    <h1 style="text-align:center">MotoGP</h1>
     <div style="overflow:auto; height:auto; width:100%; height:500px">
         <!--Lista de jogos-->
         {% for game in games.values() %}
-        <div style="background-color: lightgray; margin: 20px 0;color:black ; height:80px">
+        <div style="background-color: lightgray; margin: 20px 0;color:black ">
             <div style="height:5px">
 
             </div>
 
             <!--Modal with teams stats-->
-            <div style="margin-left:1%;float:left; width:33%">
+            <div style="margin:auto;text-align:center">
                 <!-- Trigger/Open The Modal -->
-                <div id="myBtn-{{loop.index}}" onclick="showStats('{{loop.index}}')">
-                    <h4 style="margin-top:1%"> {{ game.team_home }} - {{game.team_away}}</h4>
+                <div id="myBtn-{{loop.index}}">
+                    <h4 style="margin-top:1%"> {{game[0].description}}</h4>
                 </div>
-                <h4 style="color:gray"> {{ game.datetime.split(' ', 1)[0] }}  </h4>
-                <!-- The Modal -->
-                <div id="myModal-{{loop.index}}" class="modal">
+                <h4 style="color:gray"> {{ game[0].datetime.split(' ', 1)[0] }}  </h4>
 
-                    <!-- Modal content -->
-                    <div class="modal-content">
-                        <button class="close" onclick="closeStats('{{loop.index}}')">&times;</button>
-                        <div style="text-align:center">
-                            <h4 style="margin-top:1%"> {{ game.team_home }} VS {{game.team_away}}</h4>
-                            <hr>
-                            <!-- Estatisticas -->
-                            <p>Jogos</p>
-                            <p>Golos Marcados</p>
-                            <p>Golos Sofridos</p>
-                            <p>Classificacao</p>
+
+            </div>
+            <div style="margin:auto; width:100%; text-align:center">
+                <!--Caso multiple Selected-->
+                {% if session['tmp_bets'].is_multiple_selected %}
+                    {% if not session["tmp_bets"].check_game_present(game[0].id) %}
+                        {% for player in game[1] %}
+                        <!-- Bet Buttons-->
+                        <form action="/bet/tmp/add/" method="post" style=" width:30%;display:inline-block;margin-top:5%">
+                            <input type="hidden" value=" {{ game[0].id }}" name="game_id" style="display:none" />
+                            <input type="hidden" value=" {{ player.odd }}" name="odd" style="display:none" />
+                            <input type="hidden" value=" {{ player.id }}" name="player_id" style="display:none" />
+                            <input type="hidden" value="motogp" name="type" style="display:none" />
+                            <button type="submit" onclick="this.style.backgroundColor = 'red';" style="width:130px;height:70px">
+                                {{ player.name }}
+                                <p style="margin-bottom:0px"> {{ player.odd }} </p>
+                            </button>
+                        </form>
+                        {%endfor%}
+                    {%else%}
+                    {% for player in game[1] %}
+                        <!--Se jogador apostado-->
+                        {% if session["tmp_bets"].check_player_present(player.id) %}
+                        <div style="width: 30%; display: inline-block; margin-top: 5%">
+                            <button style="width:130px;height:70px;background-color:red">
+                                {{ player.name }}
+                                <p style="margin-bottom:0px"> {{ player.odd }} </p>
+                            </button>
                         </div>
+                        <!--Caso jogador nao apostado-->
+                        {% else %}
+                        <div style="width: 30%; display: inline-block; margin-top: 5%">
+                            <button style="width:130px;height:70px;">
+                                {{ player.name }}
+                                <p style="margin-bottom:0px"> {{ player.odd }} </p>
+                            </button>
+                        </div>
+                        {% endif %}
+                    {%endfor%}
+                    {% endif %}
 
-                    </div>
-
-                </div>
-            </div>
-
-
-            <!-- Bet Buttons-->
-            <div hidden>
-                {{ session['tmp_bets'].has_game_multiple_bet(game.id) }}
-            </div>
-            <!--Caso multiple selected-->
-            {% if session['tmp_bets'].is_multiple_selected %}
-            <!--If game not in tmp bet-->
-            {% if not session['tmp_bets'].betbutton %}
-            <div style="display: flex; margin-top: 5px">
-                <form action="/bet/tmp/add/" method="post" style="margin-left:5%; width:30%">
-                    <input type="hidden" value=" {{ game.id }}" name="game_id" style="display:none" />
-                    <input type="hidden" value=" {{ game.odd_home }}" name="odd" style="display:none" />
-                    <input type="hidden" value="home" name="bet_team" style="display:none" />
-                    <button type="submit" onclick="this.style.backgroundColor = 'red';">
-                        {{ game.team_home }}
-                        <p style="margin-bottom:0px"> {{ game.odd_home }} </p>
-                    </button>
-                </form>
-                <form action="/bet/tmp/add/" method="post" style="margin-left:25%; width:30%">
-                    <input type="hidden" value=" {{ game.id }}" name="game_id" style="display:none" />
-                    <input type="hidden" value=" {{ game.odd_away }}" name="odd" style="display:none" />
-                    <input type="hidden" value="away" name="bet_team" style="display:none" />
-                    <button type="submit" onclick="this.style.backgroundColor = 'red';">
-                        {{ game.team_away }}
-                        <p style="margin-bottom:0px"> {{ game.odd_away }} </p>
-                    </button>
-                </form>
-            </div>
-            {% else %}
-            <!--If game in tmp bet-->
-            {% if session['tmp_bets'].betbutton[0] == 1 %}
-            <div style="display: flex; margin-top: 5px">
-                <div style="margin-left: 5%; width: 30%">
-                    <button style="background-color: red">
-                        {{ game.team_home }}
-                        <p style="margin-bottom:0px"> {{ game.odd_home }} </p>
-                    </button>
-                </div>
-                <div style="margin-left: 25%; width: 30%">
-                    <button>
-                        {{ game.team_away }}
-                        <p style="margin-bottom:0px"> {{ game.odd_away }} </p>
-                    </button>
-                </div>
-            </div>
-
-            {% elif session['tmp_bets'].betbutton[1] == 1%}
-            <div style="display: flex; margin-top: 5px;">
-                <div style="margin-left: 5%; width: 30%">
-                    <button>
-                        {{ game.team_home }}
-                        <p style="margin-bottom:0px"> {{ game.odd_home }} </p>
-                    </button>
-                </div>
-                <div style="margin-left: 25%; width: 30%">
-                    <button>
-                        {{ game.team_away }}
-                        <p style="margin-bottom:0px"> {{ game.odd_away }} </p>
-                    </button>
-                </div>
-
-            </div>
-
-            {% elif session['tmp_bets'].betbutton[2] == 1%}
-            <div style="display: flex; margin-top: 5px">
-                <div style="margin-left: 5%; width: 30%">
-                    <button>
-                        {{ game.team_home }}
-                        <p style="margin-bottom:0px"> {{ game.odd_home }} </p>
-                    </button>
-                </div>
-                <div style="margin-left: 25%; width: 30%">
-                    <button style="background-color: red">
-                        {{ game.team_away }}
-                        <p style="margin-bottom:0px"> {{ game.odd_away }} </p>
-                    </button>
-                </div>
-
-            </div>
-
-            {% endif %}
-            {% endif %}
-
-            {% else %}
-            <!-- Caso simple selected -->
-            {% if not session['tmp_bets'].betbutton %}
-            <div style="display: flex; margin-top: 5px">
-                <form action="/bet/tmp/add/" method="post" style="margin-left:5%; width:30%">
-                    <input type="hidden" value=" {{ game.id }}" name="game_id" style="display:none" />
-                    <input type="hidden" value=" {{ game.odd_home }}" name="odd" style="display:none" />
-                    <input type="hidden" value="home" name="bet_team" style="display:none" />
-                    <button type="submit" onclick="this.style.backgroundColor = 'red';">
-                        {{ game.team_home }}
-                        <p style="margin-bottom:0px"> {{ game.odd_home }} </p>
-                    </button>
-                </form>
-                <form action="/bet/tmp/add/" method="post" style="margin-left:25%; width:30%">
-                    <input type="hidden" value=" {{ game.id }}" name="game_id" style="display:none" />
-                    <input type="hidden" value=" {{ game.odd_away }}" name="odd" style="display:none" />
-                    <input type="hidden" value="away" name="bet_team" style="display:none" />
-                    <button type="submit" onclick="this.style.backgroundColor = 'red';">
-                        {{ game.team_away }}
-                        <p style="margin-bottom:0px"> {{ game.odd_away }} </p>
-                    </button>
-                </form>
-            </div>
-
-            {% else %}
-            <div style="display: flex; margin-top: 5px">
-                <!--If game in tmp bet-->
-                {% if session['tmp_bets'].betbutton[0] == 1 %}
-                <div style="margin-left: 5%; width: 30%">
-                    <button style="background-color:red">
-                        {{ game.team_home }}
-                        <p style="margin-bottom:0px"> {{ game.odd_home }} </p>
-                    </button>
-                </div>
-
+                <!--Caso simple selected-->
                 {% else %}
-                <form action="/bet/tmp/add/" method="post" style="margin-left:5%; width:30%">
-                    <input type="hidden" value=" {{ game.id }}" name="game_id" style="display:none" />
-                    <input type="hidden" value=" {{ game.odd_home }}" name="odd" style="display:none" />
-                    <input type="hidden" value="home" name="bet_team" style="display:none" />
-                    <button type="submit" onclick="this.style.backgroundColor = 'red';">
-                        {{ game.team_home }}
-                        <p style="margin-bottom:0px"> {{ game.odd_home }} </p>
-                    </button>
-                </form>
-                {% endif %}
-
-                {% if session['tmp_bets'].betbutton[1] == 1%}
-                <div style="margin-left: 5%; width: 30%">
-                    <button style="background-color:red">
-                        Empate
-                        <p style="margin-bottom:0px"> {{ game.odd_draw }} </p>
-                    </button>
-                </div>
-
-
-                {% endif %}
-
-                {%if session['tmp_bets'].betbutton[2] == 1%}
-                <div style="margin-left: 25%; width: 30%">
-                    <button style="background-color:red">
-                        {{ game.team_away }}
-                        <p style="margin-bottom:0px"> {{ game.odd_away }} </p>
-                    </button>
-                </div>
-
-                {% else %}
-                <form action="/bet/tmp/add/" method="post" style="margin-left:25%; width:30%">
-                    <input type="hidden" value=" {{ game.id }}" name="game_id" style="display:none" />
-                    <input type="hidden" value=" {{ game.odd_away }}" name="odd" style="display:none" />
-                    <input type="hidden" value="away" name="bet_team" style="display:none" />
-                    <button type="submit" onclick="this.style.backgroundColor = 'red';">
-                        {{ game.team_away }}
-                        <p style="margin-bottom:0px"> {{ game.odd_away }} </p>
-                    </button>
-                </form>
-                {% endif %}
-
+                    <!--Caso jogo ja apostado-->
+                    {% if session["tmp_bets"].check_game_present(game[0].id) %}
+                        {% for player in game[1] %}
+                        <!--Caso jogador ja apostado-->
+                            {% if session["tmp_bets"].check_player_present(player.id) %}
+                                <div style="width: 30%; display: inline-block; margin-top: 5%">
+                                    <button style="width:130px;height:70px;background-color:red">
+                                        {{ player.name }}
+                                        <p style="margin-bottom:0px"> {{ player.odd }} </p>
+                                    </button>
+                                </div>
+                        <!--Caso jogador nao apostado-->
+                             {% else %}
+                                <form action="/bet/tmp/add/" method="post" style=" width:30%;display:inline-block;margin-top:5%">
+                                    <input type="hidden" value=" {{ game[0].id }}" name="game_id" style="display:none" />
+                                    <input type="hidden" value=" {{ player.odd }}" name="odd" style="display:none" />
+                                    <input type="hidden" value=" {{ player.id }}" name="player_id" style="display:none" />
+                                    <input type="hidden" value="motogp" name="type" style="display:none" />
+                                    <button type="submit" onclick="this.style.backgroundColor = 'red';" style="width:130px;height:70px">
+                                        {{ player.name }}
+                                        <p style="margin-bottom:0px"> {{ player.odd }} </p>
+                                    </button>
+                                </form>
+                            {%endif%}
+                        {%endfor%}
+                    <!--Caso jogo nao apostado-->
+                    {% else %}
+                        {% for player in game[1] %}
+                        <!-- Bet Buttons-->
+                        <form action="/bet/tmp/add/" method="post" style=" width:30%;display:inline-block;margin-top:5%">
+                            <input type="hidden" value=" {{ game[0].id }}" name="game_id" style="display:none" />
+                            <input type="hidden" value=" {{ player.odd }}" name="odd" style="display:none" />
+                            <input type="hidden" value=" {{ player.id }}" name="player_id" style="display:none" />
+                            <input type="hidden" value="motogp" name="type" style="display:none" />
+                            <button type="submit" onclick="this.style.backgroundColor = 'red';" style="width:130px;height:70px">
+                                {{ player.name }}
+                                <p style="margin-bottom:0px"> {{ player.odd }} </p>
+                            </button>
+                        </form>
+                        {%endfor%}
+                    {% endif %}
+                {%endif%}
             </div>
-            {% endif %}
-            {% endif %}
             <div style="height:5px"></div>
+
+            {% endfor %}
         </div>
-        {% endfor %}
-    </div>
+        </div>
 </div>
 {%endif%}
 
@@ -268,7 +170,6 @@
         var modal = document.getElementById(`myModal-${id}`);
         modal.style.display = "none";
     }
-
 
 
 </script>
