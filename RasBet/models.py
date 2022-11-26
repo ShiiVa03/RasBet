@@ -3,10 +3,11 @@ import enum
 from RasBet import app, db
 
 class MetaInfoGame:
-    def __init__(self, value, name, is_team_game):
+    def __init__(self, value, name, is_team_game, has_draws):
         self.value = value
         self.name = name
         self.is_team_game = is_team_game
+        self.has_draws = has_draws
 
     def __int__(self):
         return self.value
@@ -22,10 +23,10 @@ class TeamSide(enum.Enum):
     away = 3
 
 class GameType(enum.Enum):
-    football = MetaInfoGame(1, "Football", True)
-    tennis = MetaInfoGame(2, "Tennis", False)
-    basketball = MetaInfoGame(3, "BasketBall", True)
-    motogp = MetaInfoGame(4, "MotoGP", False)
+    football = MetaInfoGame(1, "Football", True, True)
+    tennis = MetaInfoGame(2, "Tennis", False, False)
+    basketball = MetaInfoGame(3, "BasketBall", True, False)
+    motogp = MetaInfoGame(4, "MotoGP", False, False)
 
 class GameState(enum.Enum):
     active = 0

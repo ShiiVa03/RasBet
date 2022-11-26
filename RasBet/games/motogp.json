@@ -1,0 +1,298 @@
+[
+    {
+        "id": "motogpgameid1",
+        "description": "2022 MotoGP Championship",
+        "commenceTime": "2022-12-02T05:00:00.000Z",
+        "completed": false,
+        "players":[
+            {
+                "id": "player01",
+                "name": "Marc Marquez",
+                "placement": 0,
+                "bookmakers":[
+                    {
+                        "key": "bwin",
+                        "lastUpdate": "2022-11-27T10:30:01.346Z",
+                        "price": 2.5
+                    }
+                ]
+            },
+            {
+                "id": "player02",
+                "name": "Pecco Bagnaia",
+                "placement": 0,
+                "bookmakers":[
+                    {
+                        "key": "bwin",
+                        "lastUpdate": "2022-11-28T17:10:00.346Z",
+                        "price": 2.75
+                    }
+                ]
+            },
+            {
+                "id": "player03",
+                "name": "Fabio Quartararo",
+                "placement": 0,
+                "bookmakers":[
+                    {
+                        "key": "bwin",
+                        "lastUpdate": "2022-11-28T17:10:00.346Z",
+                        "price": 4
+                    }
+                ]
+            },
+            {
+                "id": "player04",
+                "name": "Jorge Martin",
+                "placement": 0,
+                "bookmakers":[
+                    {
+                        "key": "bwin",
+                        "lastUpdate": "2022-11-26T14:10:00.346Z",
+                        "price": 15
+                    }
+                ]
+            },
+            {
+                "id": "player05",
+                "name": "Joan Mir",
+                "placement": 0,
+                "bookmakers":[
+                    {
+                        "key": "bwin",
+                        "lastUpdate": "2022-11-26T14:10:00.346Z",
+                        "price": 17
+                    }
+                ]
+            },
+            {
+                "id": "player06",
+                "name": "Jack Miller",
+                "placement": 0,
+                "bookmakers":[
+                    {
+                        "key": "bwin",
+                        "lastUpdate": "2022-11-27T18:19:10.346Z",
+                        "price": 17
+                    }
+                ]
+            },
+            {
+                "id": "player07",
+                "name": "Franko Morbidelli",
+                "placement": 0,
+                "bookmakers":[
+                    {
+                        "key": "bwin",
+                        "lastUpdate": "2022-11-25T14:10:00.346Z",
+                        "price": 23
+                    }
+                ]
+            },
+            {
+                "id": "player08",
+                "name": "Alex Rins",
+                "placement": 0,
+                "bookmakers":[
+                    {
+                        "key": "bwin",
+                        "lastUpdate": "2022-11-25T15:10:10.346Z",
+                        "price": 23
+                    }
+                ]
+            },
+            {
+                "id": "player09",
+                "name": "Pol Espargaro",
+                "placement": 0,
+                "bookmakers":[
+                    {
+                        "key": "bwin",
+                        "lastUpdate": "2022-11-27T20:10:10.346Z",
+                        "price": 23
+                    }
+                ]
+            },
+            {
+                "id": "player10",
+                "name": "Johann Zarco",
+                "placement": 0,
+                "bookmakers":[
+                    {
+                        "key": "bwin",
+                        "lastUpdate": "2022-11-30T16:10:10.346Z",
+                        "price": 41
+                    }
+                ]
+            },
+            {
+                "id": "player11",
+                "name": "Enea Bastianini",
+                "placement": 0,
+                "bookmakers":[
+                    {
+                        "key": "bwin",
+                        "lastUpdate": "2022-11-29T22:30:50.346Z",
+                        "price": 51
+                    }
+                ]
+            },
+            {
+                "id": "player12",
+                "name": "Brad Binder",
+                "placement": 0,
+                "bookmakers":[
+                    {
+                        "key": "bwin",
+                        "lastUpdate": "2022-11-29T21:20:50.346Z",
+                        "price": 67
+                    }
+                ]
+            },
+            {
+                "id": "player13",
+                "name": "Alex Marquez",
+                "placement": 0,
+                "bookmakers":[
+                    {
+                        "key": "bwin",
+                        "lastUpdate": "2022-11-30T19:20:50.346Z",
+                        "price": 67
+                    }
+                ]
+            },
+            {
+                "id": "player14",
+                "name": "Miguel Oliveira",
+                "placement": 0,
+                "bookmakers":[
+                    {
+                        "key": "bwin",
+                        "lastUpdate": "2022-11-27T19:20:50.346Z",
+                        "price": 67
+                    }
+                ]
+            },
+            {
+                "id": "player15",
+                "name": "Aleix Espargaro",
+                "placement": 0,
+                "bookmakers":[
+                    {
+                        "key": "bwin",
+                        "lastUpdate": "2022-11-27T19:20:50.346Z",
+                        "price": 81
+                    }
+                ]
+            },
+            {
+                "id": "player16",
+                "name": "Maverick Viñales",
+                "placement": 0,
+                "bookmakers":[
+                    {
+                        "key": "bwin",
+                        "lastUpdate": "2022-11-28T17:29:22.346Z",
+                        "price": 81
+                    }
+                ]
+            },
+            {
+                "id": "player17",
+                "name": "Raul Fernandez",
+                "placement": 0,
+                "bookmakers":[
+                    {
+                        "key": "bwin",
+                        "lastUpdate": "2022-11-28T22:55:02.346Z",
+                        "price": 101
+                    }
+                ]
+            },
+            {
+                "id": "player18",
+                "name": "Takaaki Nakagami",
+                "placement": 0,
+                "bookmakers":[
+                    {
+                        "key": "bwin",
+                        "lastUpdate": "2022-11-30T09:35:52.346Z",
+                        "price": 201
+                    }
+                ]
+            },
+            {
+                "id": "player19",
+                "name": "Andrea Dovizioso",
+                "placement": 0,
+                "bookmakers":[
+                    {
+                        "key": "bwin",
+                        "lastUpdate": "2022-11-28T11:48:34.346Z",
+                        "price": 201
+                    }
+                ]
+            },
+            {
+                "id": "player20",
+                "name": "Luca Marini",
+                "placement": 0,
+                "bookmakers":[
+                    {
+                        "key": "bwin",
+                        "lastUpdate": "2022-11-27T12:31:41.346Z",
+                        "price": 301
+                    }
+                ]
+            },
+            {
+                "id": "player21",
+                "name": "Remy Gardner",
+                "placement": 0,
+                "bookmakers":[
+                    {
+                        "key": "bwin",
+                        "lastUpdate": "2022-11-27T22:31:41.346Z",
+                        "price": 501
+                    }
+                ]
+            },
+            {
+                "id": "player22",
+                "name": "Darryn Binder",
+                "placement": 0,
+                "bookmakers":[
+                    {
+                        "key": "bwin",
+                        "lastUpdate": "2022-11-28T20:11:51.346Z",
+                        "price": 1001
+                    }
+                ]
+            },
+            {
+                "id": "player23",
+                "name": "Fabio Di Giannantonio",
+                "placement": 0,
+                "bookmakers":[
+                    {
+                        "key": "bwin",
+                        "lastUpdate": "2022-11-28T19:58:41.346Z",
+                        "price": 1001
+                    }
+                ]
+            },
+            {
+                "id": "player24",
+                "name": "Marco Bezzecchi",
+                "placement": 0,
+                "bookmakers":[
+                    {
+                        "key": "bwin",
+                        "lastUpdate": "2022-11-29T21:18:11.346Z",
+                        "price": 1001
+                    }
+                ]
+            }
+        ]
+    }
+]

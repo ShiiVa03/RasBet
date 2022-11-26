@@ -1,0 +1,322 @@
+[
+    {
+        "id": "game01",
+        "description": "WTA Montevideo",
+        "commenceTime": "2022-12-02T12:00:00.000Z",
+        "completed": false,
+        "players":[
+            {
+                "id": "player01",
+                "name": "Darya Astakhova",
+                "placement": 0,
+                "bookmakers":[
+                    {
+                        "key": "draftkings",
+                        "lastUpdate": "2022-11-26T08:30:01.346Z",
+                        "price": 1.57
+                    },
+                    {
+                        "key": "fanduel",
+                        "lastUpdate": "2022-11-27T08:30:01.346Z",
+                        "price": 1.53
+                    },
+                    {
+                        "key": "betmgm",
+                        "lastUpdate": "2022-11-27T08:30:01.346Z",
+                        "price": 1.54
+                    },
+                    {
+                        "key": "caesars",
+                        "lastUpdate": "2022-11-27T08:30:01.346Z",
+                        "price": 1.54
+                    },
+                    {
+                        "key": "pointsbet",
+                        "lastUpdate": "2022-11-27T08:30:01.346Z",
+                        "price": 1.56
+                    }
+                ]
+            },
+            {
+                "id": "player02",
+                "name": "Ipek Oz",
+                "placement": 0,
+                "bookmakers":[
+                    {
+                        "key": "draftkings",
+                        "lastUpdate": "2022-11-26T08:30:01.346Z",
+                        "price": 2.40
+                    },
+                    {
+                        "key": "fanduel",
+                        "lastUpdate": "2022-11-27T08:30:01.346Z",
+                        "price": 2.40
+                    },
+                    {
+                        "key": "betmgm",
+                        "lastUpdate": "2022-11-27T08:30:01.346Z",
+                        "price": 2.40
+                    },
+                    {
+                        "key": "caesars",
+                        "lastUpdate": "2022-11-27T08:30:01.346Z",
+                        "price": 2.45
+                    },
+                    {
+                        "key": "pointsbet",
+                        "lastUpdate": "2022-11-27T08:30:01.346Z",
+                        "price": 2.34
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "id": "game02",
+        "description": "WTA Montevideo",
+        "commenceTime": "2022-12-02T13:30:00.000Z",
+        "completed": false,
+        "players":[
+            {
+                "id": "player03",
+                "name": "Leolia Jeanjean",
+                "placement": 0,
+                "bookmakers":[
+                    {
+                        "key": "draftkings",
+                        "lastUpdate": "2022-11-26T08:30:01.346Z",
+                        "price": 1.56
+                    },
+                    {
+                        "key": "betmgm",
+                        "lastUpdate": "2022-11-27T08:30:01.346Z",
+                        "price": 1.50
+                    },
+                    {
+                        "key": "pointsbet",
+                        "lastUpdate": "2022-11-27T08:30:01.346Z",
+                        "price": 1.51
+                    }
+                ]
+            },
+            {
+                "id": "player04",
+                "name": "Irina Bara",
+                "placement": 0,
+                "bookmakers":[
+                    {
+                        "key": "draftkings",
+                        "lastUpdate": "2022-11-26T08:30:01.346Z",
+                        "price": 2.45
+                    },
+                    {
+                        "key": "betmgm",
+                        "lastUpdate": "2022-11-27T08:30:01.346Z",
+                        "price": 2.55
+                    },
+                    {
+                        "key": "pointsbet",
+                        "lastUpdate": "2022-11-27T08:30:01.346Z",
+                        "price": 2.44
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "id": "game03",
+        "description": "WTA Montevideo",
+        "commenceTime": "2022-12-02T16:00:00.000Z",
+        "completed": false,
+        "players":[
+            {
+                "id": "player05",
+                "name": "Diana Shnaider",
+                "placement": 0,
+                "bookmakers":[
+                    {
+                        "key": "draftkings",
+                        "lastUpdate": "2022-11-26T08:30:01.346Z",
+                        "price": 1.32
+                    },
+                    {
+                        "key": "betmgm",
+                        "lastUpdate": "2022-11-27T08:30:01.346Z",
+                        "price": 1.33
+                    },
+                    {
+                        "key": "caesars",
+                        "lastUpdate": "2022-11-27T08:30:01.346Z",
+                        "price": 1.32
+                    },
+                    {
+                        "key": "pointsbet",
+                        "lastUpdate": "2022-11-27T08:30:01.346Z",
+                        "price": 1.31
+                    }
+                ]
+            },
+            {
+                "id": "player06",
+                "name": "Hailey Baptiste",
+                "placement": 0,
+                "bookmakers":[
+                    {
+                        "key": "draftkings",
+                        "lastUpdate": "2022-11-26T08:30:01.346Z",
+                        "price": 3.40
+                    },
+                    {
+                        "key": "betmgm",
+                        "lastUpdate": "2022-11-27T08:30:01.346Z",
+                        "price": 3.25
+                    },
+                    {
+                        "key": "caesars",
+                        "lastUpdate": "2022-11-27T08:30:01.346Z",
+                        "price": 3.30
+                    },
+                    {
+                        "key": "pointsbet",
+                        "lastUpdate": "2022-11-27T08:30:01.346Z",
+                        "price": 3.30
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "id": "game04",
+        "description": "WTA Montevideo",
+        "commenceTime": "2022-12-02T17:30:00.000Z",
+        "completed": false,
+        "players":[
+            {
+                "id": "player07",
+                "name": "Kateryna Baindl",
+                "placement": 0,
+                "bookmakers":[
+                    {
+                        "key": "draftkings",
+                        "lastUpdate": "2022-11-26T08:30:01.346Z",
+                        "price": 1.34
+                    },
+                    {
+                        "key": "betmgm",
+                        "lastUpdate": "2022-11-27T08:30:01.346Z",
+                        "price": 1.33
+                    },
+                    {
+                        "key": "caesars",
+                        "lastUpdate": "2022-11-27T08:30:01.346Z",
+                        "price": 1.37
+                    },
+                    {
+                        "key": "pointsbet",
+                        "lastUpdate": "2022-11-27T08:30:01.346Z",
+                        "price": 1.33
+                    }
+                ]
+            },
+            {
+                "id": "player08",
+                "name": "Clara Burel",
+                "placement": 0,
+                "bookmakers":[
+                    {
+                        "key": "draftkings",
+                        "lastUpdate": "2022-11-26T08:30:01.346Z",
+                        "price": 3.25
+                    },
+                    {
+                        "key": "betmgm",
+                        "lastUpdate": "2022-11-27T08:30:01.346Z",
+                        "price": 3.20
+                    },
+                    {
+                        "key": "caesars",
+                        "lastUpdate": "2022-11-27T08:30:01.346Z",
+                        "price": 3.05
+                    },
+                    {
+                        "key": "pointsbet",
+                        "lastUpdate": "2022-11-27T08:30:01.346Z",
+                        "price": 3.10
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "id": "game05",
+        "description": "ATP Tour",
+        "commenceTime": "2022-12-02T13:00:00.000Z",
+        "completed": false,
+        "players":[
+            {
+                "id": "player09",
+                "name": "Casper Ruud",
+                "placement": 0,
+                "bookmakers":[
+                    {
+                        "key": "draftkings",
+                        "lastUpdate": "2022-11-26T08:30:01.346Z",
+                        "price": 3.95
+                    },
+                    {
+                        "key": "fanduel",
+                        "lastUpdate": "2022-11-27T08:30:01.346Z",
+                        "price": 4.40
+                    },
+                    {
+                        "key": "betmgm",
+                        "lastUpdate": "2022-11-27T08:30:01.346Z",
+                        "price": 4.20
+                    },
+                    {
+                        "key": "caesars",
+                        "lastUpdate": "2022-11-27T08:30:01.346Z",
+                        "price": 3.90
+                    },
+                    {
+                        "key": "pointsbet",
+                        "lastUpdate": "2022-11-27T08:30:01.346Z",
+                        "price": 4.20
+                    }
+                ]
+            },
+            {
+                "id": "player10",
+                "name": "Novak Djokovic",
+                "placement": 0,
+                "bookmakers":[
+                    {
+                        "key": "draftkings",
+                        "lastUpdate": "2022-11-26T08:30:01.346Z",
+                        "price": 1.26
+                    },
+                    {
+                        "key": "fanduel",
+                        "lastUpdate": "2022-11-27T08:30:01.346Z",
+                        "price": 1.23
+                    },
+                    {
+                        "key": "betmgm",
+                        "lastUpdate": "2022-11-27T08:30:01.346Z",
+                        "price": 1.22
+                    },
+                    {
+                        "key": "caesars",
+                        "lastUpdate": "2022-11-27T08:30:01.346Z",
+                        "price": 1.24
+                    },
+                    {
+                        "key": "pointsbet",
+                        "lastUpdate": "2022-11-27T08:30:01.346Z",
+                        "price": 1.22
+                    }
+                ]
+            }
+        ]
+    }
+]

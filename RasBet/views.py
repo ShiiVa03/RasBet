@@ -15,7 +15,7 @@ from dateutil.relativedelta import relativedelta
 from flask import render_template, session, url_for, abort, request, redirect
 from RasBet import app, db, scheduler, specialized_accounts
 
-from .models import TeamGame, User, Transaction, Game, GameType, UserBet, UserParcialBet, TeamSide, GameState
+from .models import TeamGame, User, Transaction, Game, GameType, UserBet, UserParcialBet, TeamSide, GameState, NoTeamGame, NoTeamGamePlayer
 from math import prod
 
 
@@ -24,85 +24,54 @@ from math import prod
 External API
 '''
 
-@scheduler.task('interval', id='get_football_games', seconds=30)
-def get_football_games():
+@scheduler.task('interval', id='get_team_games', seconds=30)
+def get_team_games():
     with app.app_context():
         url_football = "http://ucras.di.uminho.pt/v1/games/"
+        basket_path = "RasBet/games/basketball.json"
 
         response = requests.request("GET", url_football)
 
-        games = json.loads(response.text)
-        app.logger.info("Requested games in background")
+        football_games = json.loads(response.text)
+        basket_games = json.load(open(basket_path))
 
-        for game in games:
-            db_game = db.session.execute(db.select(Game).filter_by(api_id = game['id'])).scalar()
-            odds = game['bookmakers'][0]['markets'][0]['outcomes']
-            home_odd = [x['price'] for x in odds if x['name'] == game['homeTeam']][0]
-            away_odd = [x['price'] for x in odds if x['name'] == game['awayTeam']][0]
-            draw_odd = [x['price'] for x in odds if x['name'] == 'Draw'][0]
+        parse_jsons(football_games, "football")
+        parse_jsons(basket_games, "basketball")
+     
         
-            if not db_game:
-                db_game = Game(
-                    api_id=game['id'],
-                    game_type=GameType.football,
-                    game_status = GameState.active
-                )
-                db.session.add(db_game)
-                db.session.commit()
+@scheduler.task('interval', id='get_no_team_games', seconds=30)
+def get_no_team_games():
+    with app.app_context():
+        tennis_path = "RasBet/games/tennis.json"
+        motogp_path = "Rasbet/games/motogp.json"
 
-                if game['scores']:
-                    home_result, away_result = list(map(int, game['scores'].split('x')))
-                    db_game.game_status = GameState.closed
-
-                    if home_result > away_result:
-                        result = TeamSide.home
-                    elif home_result < away_result:
-                        result = TeamSide.away
-                    else:
-                        result = TeamSide.draw
-                else:
-                    result = TeamSide.undefined
-
-                team_game = TeamGame(
-                    game_id = db_game.id, 
-                    team_home = game['homeTeam'], 
-                    team_away = game['awayTeam'],
-                    odd_home = home_odd,
-                    odd_draw = draw_odd,
-                    odd_away = away_odd,
-                    result = result,
-                    datetime=datetime.strptime(game['commenceTime'], "%Y-%m-%dT%H:%M:%S.%fZ")
-                )
-            
-                db.session.add(team_game)
-                db.session.commit()   
-            
-            else:
-                team_game = db.session.execute(db.select(Game).filter_by(api_id = db_game.id))
-                team_game.odd_home = home_odd
-                team_game.odd_draw = draw_odd
-                team_game.odd_away = away_odd
+        tennis_games = json.load(open(tennis_path))
+        motogp_games = json.load(open(motogp_path))
+        
+        parse_jsons(tennis_games, "tennis")
+        parse_jsons(motogp_games, "motogp")
+        
       
 '''
 Background Threads
 '''
 
-@scheduler.task('interval', id='update_balances', seconds=5)
+@scheduler.task('interval', id='update_balances', seconds=60)
 def update_balances():
     with app.app_context():
         x = bets_from_db()
         for bet, res_list in x.items():
-            user_balance = db.session.execute(f"SELECT balance FROM user WHERE id = '{res_list[0][3]}'").scalar()
+            user_balance = db.session.execute(f"SELECT balance FROM user WHERE id = '{res_list[0][2]}'").scalar()
+ 
             if not res_list[0][5]:
                 for tup in res_list:
-                    if not tup[0] and tup[3] != TeamSide.undefined and tup[4] == GameState.closed:
+                    if not tup[0] and tup[3] != TeamSide.undefined.name and tup[4] == GameState.closed.name:
                         if tup[3] == tup[1]:
-                            
-                            gains = tup[7] * tup[8]  
+                            gains = tup[8] * tup[9]  
                             new_user_balance = user_balance + gains                      
-                            db.session.execute(f"UPDATE user SET balance = '{new_user_balance}' WHERE id = '{tup[3]}'")
+                            db.session.execute(f"UPDATE user SET balance = '{new_user_balance}' WHERE id = '{tup[2]}'")
                             transaction = Transaction(
-                                user_id = tup[3],
+                                user_id = tup[2],
                                 datetime = datetime.now(),
                                 value = gains,
                                 balance = new_user_balance,
@@ -149,6 +118,103 @@ def bets_from_db():
     
     return x
         
+def parse_jsons(games, type):
+    app.logger.info("Requested games in background")
+    
+    try:
+        enum_game_type = GameType(int(type))
+    except ValueError:
+        try:
+            enum_game_type = GameType[type.lower()]
+        except KeyError:
+            abort(404, "Jogo não existente")
+    game_type = enum_game_type.value
+
+    for game in games:
+        db_game = db.session.execute(db.select(Game).filter_by(api_id = game['id'])).scalar()
+        if game_type.is_team_game:
+            odds = game['bookmakers'][0]['markets'][0]['outcomes']
+            home_odd = [x['price'] for x in odds if x['name'] == game['homeTeam']][0]
+            away_odd = [x['price'] for x in odds if x['name'] == game['awayTeam']][0]
+            if game_type.has_draws:
+                draw_odd = [x['price'] for x in odds if x['name'] == 'Draw'][0]
+            else:
+                draw_odd = None
+        else:
+            placements = {}
+            odds = {}
+            
+            for player in game['players']:
+                odds[player['name']] = player['bookmakers'][0]['price']
+                placements[player['name']] =  player['placement']
+                
+        if not db_game:
+            db_game = Game(
+                api_id=game['id'],
+                game_type=enum_game_type.name,
+                game_status = GameState.active
+            )
+            
+            db.session.add(db_game)
+            db.session.commit()
+
+            if game_type.is_team_game:
+                if game['scores']:
+                    home_result, away_result = list(map(int, game['scores'].split('x')))
+                    db_game.game_status = GameState.closed
+
+                    if home_result > away_result:
+                        result = TeamSide.home
+                    elif home_result < away_result:
+                        result = TeamSide.away
+                    else:
+                        if game_type.has_draws:
+                            result = TeamSide.draw
+                else:
+                    result = TeamSide.undefined               
+                
+                team_game = TeamGame(
+                    game_id = db_game.id, 
+                    team_home = game['homeTeam'], 
+                    team_away = game['awayTeam'],
+                    odd_home = home_odd,
+                    odd_draw = draw_odd,
+                    odd_away = away_odd,
+                    result = result,
+                    datetime=datetime.strptime(game['commenceTime'], "%Y-%m-%dT%H:%M:%S.%fZ")
+                )
+                db.session.add(team_game)
+               
+            else:
+                no_team_game = NoTeamGame(
+                    game_id = db_game.id,
+                    description = game['description'],
+                    datetime = datetime.strptime(game['commenceTime'], "%Y-%m-%dT%H:%M:%S.%fZ")
+                )
+                db.session.add(no_team_game)
+                db.session.commit()
+
+                for player in game['players']:
+                    no_team_game_player = NoTeamGamePlayer(
+                        no_team_game_id = no_team_game.id,
+                        name = player['name'],
+                        placement = player['placement'],
+                        odd = odds[player['name']]
+                    )
+                
+                    db.session.add(no_team_game_player)
+            db.session.commit()       
+        else:
+            if game_type.is_team_game:
+                team_game = db.session.execute(f"SELECT * FROM team_game WHERE game_id = '{db_game.id}'").first()
+                db.session.execute(f"UPDATE team_game SET odd_home = '{home_odd}',odd_away = '{away_odd}', odd_draw = '{draw_odd}' WHERE game_id = '{db_game.id}'")
+            else:
+                no_team_game = db.session.execute(f"SELECT * FROM no_team_game WHERE game_id = '{db_game.id}'").first()
+                no_team_game_players = db.session.execute(f"SELECT * FROM no_team_game_player WHERE no_team_game_id = '{no_team_game.id}'").all()
+                
+                for no_team_game_player in no_team_game_players:
+                    db.session.execute(f"UPDATE no_team_game_player SET placement = '{placements[no_team_game_player.name]}', odd = '{odds[no_team_game_player.name]}' WHERE id = '{no_team_game_player.id}'")
+            db.session.commit()
     
 
 '''
@@ -284,7 +350,6 @@ def user_get_simple_bets():
             
             gains = "{:.2f}".format(res[8] * res[9])
             team_bet = res[1]
-            print(team_bet)
             result = res[3]
             home = res[6]
             away = res[7]
@@ -311,7 +376,6 @@ def user_get_simple_bets():
                 new_tuples.append(new_tup)
             bets_multiple[bet] =  new_tuples
         
-    print(bets_simple)
     return render_template(
         'account_bets.html',
         bets_simple = bets_simple,
@@ -481,9 +545,8 @@ def add_tmp_simple_bet():
 def set_tmp_bet():
     _index = request.form.get('index', None)
     amount = float(request.form['amount'].replace(",","."))
-    print(amount)
     index = _index and int(_index)
-    print(index)
+
     
     session['tmp_bets'].set_amount(index, amount)
 
@@ -492,7 +555,6 @@ def set_tmp_bet():
 @app.post('/bet/tmp/del/')
 def del_tmp_bet():
     index = int(request.form['index'])
-    print(index)
     session['tmp_bets'].pop(index)
     return redirect(request.referrer)
 
@@ -610,11 +672,8 @@ def change_odd(game_id,_type):
     team_side = enum_team_side.name
     game_id = int(game_id)
     
-    print(f"odd_{team_side}")
-  
-    print(f"'{game_id}'")
     new_odd = request.form['new_odd']
-    print(f"'{new_odd}'")
+
     db.session.execute(f"UPDATE team_game SET odd_{team_side} = '{new_odd}' WHERE game_id = '{game_id}'")
     db.session.commit()
     return redirect(request.referrer)
