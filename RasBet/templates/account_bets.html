@@ -12,11 +12,40 @@
         <button id="btnM" onclick="showMultipla()" style="background-color: white; border-color: red; width: 150px; height: 40px; font-size: 20px; margin: 0 10%"><b>Multipla</b></button>
     </div>
     <div id="Simples" style=" margin: auto; width: 80%; height: 250px; display: block; overflow: auto; margin-top:5%">
-        {% for betS in bets_simple.values() %}
-            {% for (home,away,result,value,gains,money) in betS %}
+        {% for (description,result,value,gains,money) in bets_simple %}
         <div style="border: 1px solid black; margin-top:1%; height:100px; width:420px;margin-left:auto;margin-right:auto">
             <div style="margin-left:1%;float:left; width:40%">
-                <h5 style="font-weight: 700; margin-bottom:0; margin-top:30px">{{ home }} - {{ away }}</h5>
+                <h5 style="font-weight: 700; margin-bottom:0; margin-top:30px">{{ description }}</h5>
+                <small style="color:gray; margin-top:-20%; margin:auto">Aposta: {{ value }}</small>
+            </div>
+            <div>
+                <h5 style="font-weight: 700;"> Montante apostado: <rounded>{{ money }}</rounded> &euro; </h5>
+                <h5 style="font-weight: 700;">Possiveis ganhos: {{ gains }} &euro;</h5>
+            </div>
+
+            {% if result == "undefined" or result == 0 %}
+            <div style="margin-left:60%">Jogo nao realizado</div>
+            {% else %}
+            {% if result == "home" %}
+            <div style="margin-left:60%">Resultado: {{home}}</div>
+            {% elif result == "draw" %}
+            <div style="margin-left:60%">Resultado: Empate</div>
+            {% elif result == "away" %}
+            <div style="margin-left:60%">Resultado: {{away}}</div>
+            {% else %}
+            <div style="margin-left:60%">Resultado: {{ result }}</div>
+            {%endif%}
+            {%endif%}
+        </div>
+
+        {% endfor %}
+    </div>
+
+    <div id="Multipla" style="margin: auto; width: 80%; height: 250px; overflow: auto; display: none; margin-top: 5% ">
+        {% for (description,result,value,gains,money) in bets_multiple %}
+        <div style="border: 1px solid black; margin-top:1%; height:100px; width:420px;margin-left:auto;margin-right:auto">
+            <div style="margin-left:1%;float:left; width:40%">
+                <h5 style="font-weight: 700; margin-bottom:0; margin-top:30px">{{ description }}</h5>
                 <small style="color:gray; margin-top:-20%; margin:auto">Aposta: {{ value }}</small>
             </div>
             <div>
@@ -30,36 +59,14 @@
             {% if result == "home" %}
             <div style="margin-left:60%">Resultado: {{home}}</div>
             {% elif result == "draw" %}
-            <div style="margin-left:60%">Resultado: empate</div>
-            {% else %}
+            <div style="margin-left:60%">Resultado: Empate</div>
+            {% elif result == "away" %}
             <div style="margin-left:60%">Resultado: {{away}}</div>
-            {%endif%}
-            {%endif%}
-        </div>
-        {%endfor%}
-        {% endfor %}
-    </div>
-
-    <div id="Multipla" style="margin: auto; width: 80%; height: 250px; overflow: auto; display: none; margin-top: 5% ">
-        {% for betS in bets_multiple.values() %}
-        {% for (home,away,result,value,gains,money) in betS %}
-        <div style="border: 1px solid black; margin-top:1%; height:100px; width:420px;margin-left:auto;margin-right:auto">
-            <div style="margin-left:1%;float:left; width:40%">
-                <h5 style="font-weight: 700; margin-bottom:0; margin-top:30px">{{ home }} - {{ away }}</h5>
-                <small style="color:gray; margin-top:-20%; margin:auto">Aposta: {{ value }}</small>
-            </div>
-            <div>
-                <h5 style="font-weight: 700;"> Montante apostado: <rounded>{{ money }}</rounded> &euro; </h5>
-                <h5 style="font-weight: 700;">Possiveis ganhos: {{ gains }} &euro;</h5>
-            </div>
-
-            {% if result == "undefined" %}
-            <div style="margin-left:60%">Jogo nao realizado</div>
             {% else %}
-            <div style="margin-left:60%">{{result}}</div>
+            <div style="margin-left:60%">Resultado: {{ result }}</div>
+            {%endif%}
             {%endif%}
         </div>
-        {%endfor%}
         {% endfor %}
     </div>
 
