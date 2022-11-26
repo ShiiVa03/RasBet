@@ -3,11 +3,81 @@
 {% block content %}
 
 {% if session['type'] == "admin" %}
+<div style="margin:auto; align-self:center; width:80%; height:100%">
+    <h1 style="text-align:center">Futebol</h1>
+    <div style="overflow: auto; height: auto; width: 900px; height:560px;margin:auto">
+        {% for game in games.values() %}
+        <div style="background-color: lightgray; margin: 20px 0;color:black ; height:90px">
+            <div style="height:5px"></div>
+            <div style="margin-left:1%;float:left; width:33%">
+                <h4 style="margin-top:1%"> {{ game.team_home }} - {{game.team_away}}</h4>
+                <h4 style="color:gray"> {{ game.datetime.split(' ', 1)[0] }}  </h4>
+                <h4 style="color:gray"> Estado: {{ game.game_status }}  </h4>
+            </div>
+            {% if game.game_status == "active" %}
+            <div style="display: flex; margin-top: 15px; width: 30%">
+                <div style="margin-left: 5%; width: 30%">
+                    <button style="background-color: red">
+                        Ativar
+                    </button>
+                </div>
+                <form action="/admin/{{ game.id }}/update/suspended" method="post" style="margin-left: 35%;">
+                    <button type="submit" onclick="this.style.backgroundColor = 'red';">
+                        Suspender
+                    </button>
+                </form>
+                <form action="/admin/{{ game.id }}/update/closed" method="post" style="margin-left: 35%;">
+                    <button type="submit" onclick="this.style.backgroundColor = 'red';">
+                        Fechar
+                    </button>
+                </form>
+            </div>
+            {% elif game.status == "suspended" %}
+            <div style="display: flex; margin-top: 15px; width: 30%">
+                <form action="/admin/{{ game.id }}/update/active" method="post" style="margin-left: 5%;">
+                    <button type="submit" onclick="this.style.backgroundColor = 'red';">
+                        Ativar
+                    </button>
+                </form>
+                <div style="margin-left: 35%; width: 30%">
+                    <button style="background-color: red">
+                        Suspender
+                    </button>
+                </div>
+                <form action="/admin/{{ game.id }}/update/closed" method="post" style="margin-left: 35%;">
+                    <button type="submit" onclick="this.style.backgroundColor = 'red';">
+                        Fechar
+                    </button>
+                </form>
+            </div>
+            {% else %}
+            <div style="display: flex; margin-top: 15px; width: 30%">
+                <form action="/admin/{{ game.id }}/update/active" method="post" style="margin-left: 5%;">
+                    <button type="submit" onclick="this.style.backgroundColor = 'red';">
+                        Ativar
+                    </button>
+                </form>
+                <form action="/admin/{{ game.id }}/update/suspended" method="post" style="margin-left: 35%;">
+                    <button type="submit" onclick="this.style.backgroundColor = 'red';">
+                        Suspender
+                    </button>
+                </form>
+                <div style="margin-left: 35%; width: 30%">
+                    <button style="background-color: red">
+                        Fechar
+                    </button>
+                </div>
+            </div>
+            {%endif%}
+        </div>
+            {% endfor %}
+        </div>
+</div>
 
 {% elif session['type'] == "especialista" %}
 <div style="margin:auto; align-self:center; width:80%; height:100%">
     <h1 style="text-align:center">Futebol</h1>
-    <div style="overflow:auto; height:auto; width:100%; height:560px">
+    <div style="overflow: auto; height: auto; width: 900px; height:560px;margin:auto">
         {% for game in games.values() %}
         <div style="background-color: lightgray; margin: 20px 0;color:black ; height:75px">
             <div style="height:5px"></div>
@@ -16,21 +86,24 @@
                 <h4 style="color:gray"> {{ game.datetime.split(' ', 1)[0] }}  </h4>
             </div>
             <div style="display: flex; margin-top: 5px; width: 30%">
-                <form action="/specialist/{{ game.id }}/home/update" method="post" style="margin-left: 5%; background-color: white; border: 2px solid black">
+                <form action="/specialist/{{ game.id }}/update" method="post" style="margin-left: 5%; background-color: white; border: 2px solid black">
                     {{ game.team_home }}
                     <p></p>
+                    <input type="hidden" value="home" name="side" style="display:none" />
                     <input type="hidden" value="football" name="game_type" style="display:none" />
                     <input type="text" placeholder="Alterar odd:{{game.odd_home}}" name="new_odd" style="width:120px; border:1px solid black; margin:auto" />
                 </form>
-                <form action="/specialist/{{ game.id }}/draw/update" method="post" style="margin-left: 15%; background-color: white; border: 2px solid black">
+                <form action="/specialist/{{ game.id }}/update" method="post" style="margin-left: 15%; background-color: white; border: 2px solid black">
                     Empate
                     <p></p>
+                    <input type="hidden" value="draw" name="side" style="display:none" />
                     <input type="hidden" value="football" name="game_type" style="display:none" />
                     <input type="text" placeholder="Alterar odd:{{game.odd_draw}}" name="new_odd" style="width:120px; border:1px solid black; margin:auto" />
                 </form>
-                <form action="/specialist/{{ game.id }}/away/update" method="post" style="margin-left: 15%; background-color: white; border: 2px solid black">
+                <form action="/specialist/{{ game.id }}/update" method="post" style="margin-left: 15%; background-color: white; border: 2px solid black">
                     {{ game.team_away }}
                     <p></p>
+                    <input type="hidden" value="away" name="side" style="display:none" />
                     <input type="hidden" value="football" name="game_type" style="display:none" />
                     <input type="text" placeholder="Alterar odd:{{game.odd_away}}" name="new_odd" style="width:120px; border:1px solid black; margin:auto" />
                 </form>

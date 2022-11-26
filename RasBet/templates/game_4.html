@@ -7,28 +7,32 @@
 {% elif session['type'] == "especialista" %}
 <div style="margin:auto; align-self:center; width:80%; height:100%">
     <h1 style="text-align:center">MotoGP</h1>
-    <div style="overflow:auto; height:auto; width:100%; height:560px">
+    <div style="overflow: auto; height: auto; width: 100%; height: 500px">
         {% for game in games.values() %}
-        <div style="background-color: lightgray; margin: 20px 0;color:black ; height:75px">
+        <div style="background-color: lightgray; margin: 20px 0;color:black">
             <div style="height:5px"></div>
-            <div style="margin-left:1%;float:left; width:33%">
-                <h4 style="margin-top:1%"> {{ game.team_home }} - {{game.team_away}}</h4>
+            <div style="margin:auto;text-align:center">
+                <h4 style="margin-top:1%"> {{game[0].description}}</h4>
                 <h4 style="color:gray"> {{ game[0].datetime.split(' ', 1)[0] }}  </h4>
             </div>
-            <div style="display: flex; margin-top: 5px; width: 30%">
-                <form action="/specialist/{{ game.id }}/home/update" method="post" style="margin-left: 5%; background-color: white; border: 2px solid black">
-                    {{ game.team_home }}
-                    <p></p>
-                    <input type="text" placeholder="Alterar odd:{{game.odd_home}}" name="new_odd" style="width:120px; border:1px solid black; margin:auto" />
+            <div style="margin:auto; width:100%; text-align:center">
+                {% for player in game[1] %}
+                <form action="/specialist/{{ game[0].id }}/update" method="post" style=" width:30%;display:inline-block;margin-top:5%">
+                    <div style="background-color: white; width: 130px; height: 80px; margin:auto; border: 1px solid black">
+                        {{ player.name }}
+                        <p></p>
+                        <input type="hidden" value="{{player.id}}" name="player_id" style="display:none" />
+                        <input type="hidden" value="motogp" name="game_type" style="display:none" />
+                        <input type="text" placeholder="Alterar odd:{{player.odd}}" name="new_odd" style="width:120px; border:1px solid black; margin:auto" />
+                    </div>
+
                 </form>
-                <form action="/specialist/{{ game.id }}/away/update" method="post" style="margin-left: 15%; background-color: white; border: 2px solid black">
-                    {{ game.team_away }}
-                    <p></p>
-                    <input type="text" placeholder="Alterar odd:{{game.odd_away}}" name="new_odd" style="width:120px; border:1px solid black; margin:auto" />
-                </form>
+                {%endfor%}
+                <div style="height:5px"></div>
             </div>
         </div>
         {% endfor %}
+      
     </div>
 </div>
 
