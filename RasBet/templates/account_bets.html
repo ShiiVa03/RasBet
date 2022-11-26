@@ -11,7 +11,7 @@
         <button id="btnS" onclick="showSimples()" style="background-color: red; border-color: red; width: 150px; height: 40px; font-size: 20px; margin: 0 10%"><b>Simples</b></button>
         <button id="btnM" onclick="showMultipla()" style="background-color: white; border-color: red; width: 150px; height: 40px; font-size: 20px; margin: 0 10%"><b>Multipla</b></button>
     </div>
-    <div id="Simples" style=" margin: auto; width: 80%; height: 260px; display: block; overflow: auto; margin-top:5%">
+    <div id="Simples" style=" margin: auto; width: 80%; height: 250px; display: block; overflow: auto; margin-top:5%">
         {% for betS in bets_simple.values() %}
             {% for (home,away,result,value,gains,money) in betS %}
         <div style="border: 1px solid black; margin-top:1%; height:100px; width:420px;margin-left:auto;margin-right:auto">
@@ -40,7 +40,7 @@
         {% endfor %}
     </div>
 
-    <div id="Multipla" style="margin: auto; width: 80%; height: 260px; overflow: auto; display: none; margin-top: 5% ">
+    <div id="Multipla" style="margin: auto; width: 80%; height: 250px; overflow: auto; display: none; margin-top: 5% ">
         {% for betS in bets_multiple.values() %}
         {% for (home,away,result,value,gains,money) in betS %}
         <div style="border: 1px solid black; margin-top:1%; height:100px; width:420px;margin-left:auto;margin-right:auto">

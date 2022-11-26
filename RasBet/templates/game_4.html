@@ -6,7 +6,7 @@
 
 {% elif session['type'] == "especialista" %}
 <div style="margin:auto; align-self:center; width:80%; height:100%">
-    <h1 style="text-align:center">Futebol</h1>
+    <h1 style="text-align:center">Basquetbol</h1>
     <div style="overflow:auto; height:auto; width:100%; height:560px">
         {% for game in games.values() %}
         <div style="background-color: lightgray; margin: 20px 0;color:black ; height:75px">
@@ -20,11 +20,6 @@
                     {{ game.team_home }}
                     <p></p>
                     <input type="text" placeholder="Alterar odd:{{game.odd_home}}" name="new_odd" style="width:120px; border:1px solid black; margin:auto" />
-                </form>
-                <form action="/specialist/{{ game.id }}/draw/update" method="post" style="margin-left: 15%; background-color: white; border: 2px solid black">
-                    Empate
-                    <p></p>
-                    <input type="text" placeholder="Alterar odd:{{game.odd_draw}}" name="new_odd" style="width:120px; border:1px solid black; margin:auto" />
                 </form>
                 <form action="/specialist/{{ game.id }}/away/update" method="post" style="margin-left: 15%; background-color: white; border: 2px solid black">
                     {{ game.team_away }}
@@ -40,11 +35,11 @@
 {% else %}
 <div style="float: left; width:70%; height:100%">
 
-    <h1 style="text-align:center">Futebol</h1>
+    <h1 style="text-align:center">Basquetebol</h1>
     <div style="overflow:auto; height:auto; width:100%; height:500px">
         <!--Lista de jogos-->
         {% for game in games.values() %}
-        <div style="background-color: lightgray; margin: 20px 0;color:black ; height:75px">
+        <div style="background-color: lightgray; margin: 20px 0;color:black ; height:80px">
             <div style="height:5px">
 
             </div>
@@ -96,16 +91,7 @@
                         <p style="margin-bottom:0px"> {{ game.odd_home }} </p>
                     </button>
                 </form>
-                <form action="/bet/tmp/add/" method="post" style="margin-left:5%; width:30%">
-                    <input type="hidden" value=" {{ game.id }}" name="game_id" style="display:none" />
-                    <input type="hidden" value=" {{ game.odd_draw }}" name="odd" style="display:none" />
-                    <input type="hidden" value="draw" name="bet_team" style="display:none" />
-                    <button type="submit" onclick="this.style.backgroundColor = 'red';">
-                        Empate
-                        <p style="margin-bottom:0px"> {{ game.odd_draw }} </p>
-                    </button>
-                </form>
-                <form action="/bet/tmp/add/" method="post" style="margin-left:5%; width:30%">
+                <form action="/bet/tmp/add/" method="post" style="margin-left:25%; width:30%">
                     <input type="hidden" value=" {{ game.id }}" name="game_id" style="display:none" />
                     <input type="hidden" value=" {{ game.odd_away }}" name="odd" style="display:none" />
                     <input type="hidden" value="away" name="bet_team" style="display:none" />
@@ -125,13 +111,7 @@
                         <p style="margin-bottom:0px"> {{ game.odd_home }} </p>
                     </button>
                 </div>
-                <div style="margin-left: 5%; width: 30%">
-                    <button>
-                        Empate
-                        <p style="margin-bottom:0px"> {{ game.odd_draw }} </p>
-                    </button>
-                </div>
-                <div style="margin-left: 5%; width: 30%">
+                <div style="margin-left: 25%; width: 30%">
                     <button>
                         {{ game.team_away }}
                         <p style="margin-bottom:0px"> {{ game.odd_away }} </p>
@@ -147,13 +127,7 @@
                         <p style="margin-bottom:0px"> {{ game.odd_home }} </p>
                     </button>
                 </div>
-                <div style="margin-left: 5%; width: 30%">
-                    <button style="background-color: red">
-                        Empate
-                        <p style="margin-bottom:0px"> {{ game.odd_draw }} </p>
-                    </button>
-                </div>
-                <div style="margin-left: 5%; width: 30%">
+                <div style="margin-left: 25%; width: 30%">
                     <button>
                         {{ game.team_away }}
                         <p style="margin-bottom:0px"> {{ game.odd_away }} </p>
@@ -170,13 +144,7 @@
                         <p style="margin-bottom:0px"> {{ game.odd_home }} </p>
                     </button>
                 </div>
-                <div style="margin-left: 5%; width: 30%">
-                    <button>
-                        Empate
-                        <p style="margin-bottom:0px"> {{ game.odd_draw }} </p>
-                    </button>
-                </div>
-                <div style="margin-left: 5%; width: 30%">
+                <div style="margin-left: 25%; width: 30%">
                     <button style="background-color: red">
                         {{ game.team_away }}
                         <p style="margin-bottom:0px"> {{ game.odd_away }} </p>
@@ -201,16 +169,7 @@
                         <p style="margin-bottom:0px"> {{ game.odd_home }} </p>
                     </button>
                 </form>
-                <form action="/bet/tmp/add/" method="post" style="margin-left:5%; width:30%">
-                    <input type="hidden" value=" {{ game.id }}" name="game_id" style="display:none" />
-                    <input type="hidden" value=" {{ game.odd_draw }}" name="odd" style="display:none" />
-                    <input type="hidden" value="draw" name="bet_team" style="display:none" />
-                    <button type="submit" onclick="this.style.backgroundColor = 'red';">
-                        Empate
-                        <p style="margin-bottom:0px"> {{ game.odd_draw }} </p>
-                    </button>
-                </form>
-                <form action="/bet/tmp/add/" method="post" style="margin-left:5%; width:30%">
+                <form action="/bet/tmp/add/" method="post" style="margin-left:25%; width:30%">
                     <input type="hidden" value=" {{ game.id }}" name="game_id" style="display:none" />
                     <input type="hidden" value=" {{ game.odd_away }}" name="odd" style="display:none" />
                     <input type="hidden" value="away" name="bet_team" style="display:none" />
@@ -252,20 +211,11 @@
                     </button>
                 </div>
 
-                {% else %}
-                <form action="/bet/tmp/add/" method="post" style="margin-left:5%; width:30%">
-                    <input type="hidden" value=" {{ game.id }}" name="game_id" style="display:none" />
-                    <input type="hidden" value=" {{ game.odd_draw }}" name="odd" style="display:none" />
-                    <input type="hidden" value="draw" name="bet_team" style="display:none" />
-                    <button type="submit" onclick="this.style.backgroundColor = 'red';">
-                        Empate
-                        <p style="margin-bottom:0px"> {{ game.odd_draw }} </p>
-                    </button>
-                </form>
+
                 {% endif %}
 
                 {%if session['tmp_bets'].betbutton[2] == 1%}
-                <div style="margin-left: 5%; width: 30%">
+                <div style="margin-left: 25%; width: 30%">
                     <button style="background-color:red">
                         {{ game.team_away }}
                         <p style="margin-bottom:0px"> {{ game.odd_away }} </p>
@@ -273,7 +223,7 @@
                 </div>
 
                 {% else %}
-                <form action="/bet/tmp/add/" method="post" style="margin-left:5%; width:30%">
+                <form action="/bet/tmp/add/" method="post" style="margin-left:25%; width:30%">
                     <input type="hidden" value=" {{ game.id }}" name="game_id" style="display:none" />
                     <input type="hidden" value=" {{ game.odd_away }}" name="odd" style="display:none" />
                     <input type="hidden" value="away" name="bet_team" style="display:none" />
@@ -325,3 +275,5 @@
 
 
     {% endblock %}
+
+
