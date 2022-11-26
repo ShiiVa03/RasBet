@@ -704,14 +704,14 @@ def change_odd(game_id,_type):
     
     game_type = request.form['game_type']
     try:
-        game_type = GameType(int(_type))
+        enum_game_type = GameType(int(game_type))
     except ValueError:
         try:
-            game_type = GameType[_type.lower()]
+            enum_game_type = GameType[game_type.lower()]
         except KeyError:
             abort(404, "Tipo não existente")
     
-    team_game = game_type.is_team_game
+    team_game = enum_game_type.value.is_team_game
     
     if team_game:
         db.session.execute(f"UPDATE team_game SET odd_{team_side} = '{new_odd}' WHERE game_id = '{game_id}'")
