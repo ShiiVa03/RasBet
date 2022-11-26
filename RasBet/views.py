@@ -61,7 +61,8 @@ def update_balances():
     with app.app_context():
         team_games = bets_team_game()
         no_team_games = bets_no_team_game()
-        
+        update_not_team_game_balance(no_team_games)
+
         for bet, res_list in team_games.items():
             user_balance = db.session.execute(f"SELECT balance FROM user WHERE id = '{res_list[0][2]}'").scalar()
  
@@ -80,14 +81,16 @@ def update_balances():
                 if len(list(filter(lambda x: x[4] == GameState.closed and x[3] != TeamSide.undefined and not x[0] and x[3] == x[1], res_list))) == len(res_list):
                     gains = res_list[0][8] * prod([x[9] for x in res_list])
                     new_user_balance = user_balance + gains
-                    db.session.execute(f"UPDATE user SET balance = '{new_user_balance}' WHERE id = '{res_list[0][3]}'")
+                    db.session.execute(f"UPDATE user SET balance = '{new_user_balance}' WHERE id = '{res_list[0][2]}'")
                     
-                    transaction = create_transaction(res_list[0][3], gains, new_user_balance)
+                    transaction = create_transaction(res_list[0][2], gains, new_user_balance)
                     ids = tuple([x[10] for x in res_list])
                     db.session.add(transaction)
                     db.session.execute(f"UPDATE user_parcial_bet SET paid = 'True' WHERE id IN {ids}")
-
-        db.session.commit()            
+       
+        db.session.commit()
+        
+            
 '''
 Utility functions
 '''
@@ -98,23 +101,23 @@ def update_not_team_game_balance(no_team_games):
  
             if not res_list[0][5]:
                 for tup in res_list:
-                    if not tup[0] and tup[3] != TeamSide.undefined.name and tup[4] == GameState.closed.name:
-                        if tup[3] == tup[1]:
-                            gains = tup[8] * tup[9]  
+                    if not tup[0] and tup[3] and tup[4] == GameState.closed.name:
+                        if tup[3] == 1:
+                            gains = tup[6] * tup[7]  
                             new_user_balance = user_balance + gains                      
                             db.session.execute(f"UPDATE user SET balance = '{new_user_balance}' WHERE id = '{tup[2]}'")
                             
                             transaction = create_transaction(tup[2], gains, new_user_balance)
                             db.session.add(transaction)   
-                            db.session.execute(f"UPDATE user_parcial_bet SET paid = 'True' WHERE id = '{tup[10]}'")
+                            db.session.execute(f"UPDATE user_parcial_bet SET paid = 'True' WHERE id = '{tup[8]}'")
             else:
-                if len(list(filter(lambda x: x[4] == GameState.closed and x[3] != TeamSide.undefined and not x[0] and x[3] == x[1], res_list))) == len(res_list):
-                    gains = res_list[0][8] * prod([x[9] for x in res_list])
+                if len(list(filter(lambda x: x[4] == GameState.closed and x[3] == 1 and not x[0], res_list))) == len(res_list):
+                    gains = res_list[0][6] * prod([x[7] for x in res_list])
                     new_user_balance = user_balance + gains
-                    db.session.execute(f"UPDATE user SET balance = '{new_user_balance}' WHERE id = '{res_list[0][3]}'")
+                    db.session.execute(f"UPDATE user SET balance = '{new_user_balance}' WHERE id = '{res_list[0][2]}'")
                     
-                    transaction = create_transaction(res_list[0][3], gains, new_user_balance)
-                    ids = tuple([x[10] for x in res_list])
+                    transaction = create_transaction(res_list[0][2], gains, new_user_balance)
+                    ids = tuple([x[8] for x in res_list])
                     db.session.add(transaction)
                     db.session.execute(f"UPDATE user_parcial_bet SET paid = 'True' WHERE id IN {ids}")
 
@@ -146,20 +149,80 @@ def bets_team_game():
     return x
 
 def bets_no_team_game():
-    result = db.session.execute("SELECT UB.id, UP.paid, UP.bet_no_team, UB.user_id, NTG.placement, G.game_status, UB.is_multiple, UP.money, Up.odd, UP.id FROM user_parcial_bet UP\
+    result = db.session.execute("SELECT UB.id, UP.paid, UP.bet_no_team, UB.user_id, NTGP.placement, G.game_status, UB.is_multiple, UP.money, UP.odd, UP.id, NTGP.name, NTG.description FROM user_parcial_bet UP\
                             INNER JOIN user_bet UB\
                             ON UP.user_bet_id = UB.id\
                             INNER JOIN  game G\
                             ON UP.game_id = G.id\
+                            INNER JOIN no_team_game_player NTGP\
+                            ON NTGP.id = UP.bet_no_team\
                             INNER JOIN no_team_game NTG\
-                            ON NTG.id = UP.bet_no_team").all()
+                            ON NTGP.no_team_game_id = G.id").all()
     x = {}
         
     for bet, *res in result:
         x.setdefault(bet, []).append(res)
     
     return x
+
+def generate_tup_no_team(bets_no_team, bets_simple,bets_multiple):
+    for _, res_list in bets_no_team.items():
+        new_result = []
+       
+        for res in res_list:
+            
+            gains = "{:.2f}".format(res[6] * res[7])
+            value = res[9]
+            result = res[3]
+            money = res[6]
+            description = f"{res[10]}"
+            
+            new_result.append((description,result,value,gains,money))
     
+        if not res_list[0][5]:
+            for tup in new_result:
+                bets_simple.append(tup)
+        else:
+            gains =  "{:.2f}".format(res_list[0][6] * prod([x[7] for x in res_list]))
+            for tup in new_result:
+                x = list(tup)
+                x[3] = gains
+                new_tup = tuple(x)
+                bets_multiple.append(new_tup)
+                
+def generate_tup_team(bets_team, bets_simple,bets_multiple):
+    for _, res_list in bets_team.items():
+        new_result = []
+       
+        for res in res_list:
+            
+            gains = "{:.2f}".format(res[8] * res[9])
+            team_bet = res[1]
+            result = res[3]
+            home = res[6]
+            away = res[7]
+            money = res[8]           
+            
+            if team_bet == TeamSide.home.name:
+                value = home
+            elif team_bet == TeamSide.away.name:
+                value = away
+            else:
+                value = "Empate"
+            description = f"{home} - {away}"
+            
+            new_result.append((description,result,value,gains,money))
+    
+        if not res_list[0][5]:
+            for tup in new_result:
+                bets_simple.append(tup)
+        else:
+            gains =  "{:.2f}".format(res_list[0][8] * prod([x[9] for x in res_list]))
+            for tup in new_result:
+                x = list(tup)
+                x[3] = gains
+                new_tup = tuple(x)
+                bets_multiple.append(new_tup)
         
 def parse_jsons(games, type):
     app.logger.info("Requested games in background")
@@ -390,43 +453,16 @@ def user_get_simple_bets():
     if not user:
         abort(404, "User not found")
     
-    bets = bets_team_game()
-    bets_simple = {}
-    bets_multiple = {}
-
-    for bet, res_list in bets.items():
-        new_result = []
-       
-        for res in res_list:
-            
-            gains = "{:.2f}".format(res[8] * res[9])
-            team_bet = res[1]
-            result = res[3]
-            home = res[6]
-            away = res[7]
-            money = res[8]           
-            
-            if team_bet == TeamSide.home.name:
-                value = home
-            elif team_bet == TeamSide.away.name:
-                value = away
-            else:
-                value = "Empate"
-            
-            new_result.append((home,away,result,value,gains,money))
+    bets_team = bets_team_game()
+    bets_no_team = bets_no_team_game()
+    bets_simple = []
+    bets_multiple = []
     
-        if not res_list[0][5]:
-            bets_simple[bet] = new_result
-        else:
-            gains =  "{:.2f}".format(res_list[0][8] * prod([x[9] for x in res_list]))
-            new_tuples = []
-            for tup in new_result:
-                x = list(tup)
-                x[4] = gains
-                new_tup = tuple(x)
-                new_tuples.append(new_tup)
-            bets_multiple[bet] =  new_tuples
-        
+    generate_tup_no_team(bets_no_team, bets_simple, bets_multiple)
+    generate_tup_team(bets_team, bets_simple, bets_multiple)
+    
+    print(bets_simple)
+    
     return render_template(
         'account_bets.html',
         bets_simple = bets_simple,
