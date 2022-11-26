@@ -59,8 +59,10 @@ Background Threads
 @scheduler.task('interval', id='update_balances', seconds=60)
 def update_balances():
     with app.app_context():
-        x = bets_from_db()
-        for bet, res_list in x.items():
+        team_games = bets_team_game()
+        no_team_games = bets_no_team_game()
+        
+        for bet, res_list in team_games.items():
             user_balance = db.session.execute(f"SELECT balance FROM user WHERE id = '{res_list[0][2]}'").scalar()
  
             if not res_list[0][5]:
@@ -70,7 +72,8 @@ def update_balances():
                             gains = tup[8] * tup[9]  
                             new_user_balance = user_balance + gains                      
                             db.session.execute(f"UPDATE user SET balance = '{new_user_balance}' WHERE id = '{tup[2]}'")
-                            transaction = Transaction(
+                            
+                            transaction = create_transaction(tup[2], gains, new_user_balance)Transaction(
                                 user_id = tup[2],
                                 datetime = datetime.now(),
                                 value = gains,
@@ -95,15 +98,22 @@ def update_balances():
                     db.session.add(transaction)
                     db.session.execute(f"UPDATE user_parcial_bet SET paid = 'True' WHERE id IN {ids}")
 
-        db.session.commit()
-        
-                
-            
+        db.session.commit()            
 '''
 Utility functions
 '''
 
-def bets_from_db():
+
+def create_transaction(user_id, value, new_balance):
+    return Transaction(
+        user_id = user_id,
+        datetime = datetime.now(),
+        value = value,
+        balance = new_balance,
+        description = "Aposta Ganha"
+    )
+    
+def bets_team_game():
     result = db.session.execute("SELECT UB.id, UP.paid, UP.bet_team, UB.user_id,TG.result, G.game_status, UB.is_multiple, TG.team_home, TG.team_away, UP.money, Up.odd, UP.id FROM user_parcial_bet UP\
                             INNER JOIN user_bet UB\
                             ON UP.user_bet_id = UB.id\
@@ -117,6 +127,22 @@ def bets_from_db():
         x.setdefault(bet, []).append(res)
     
     return x
+
+def bets_no_team_game():
+    result = db.session.execute("SELECT UB.id, UP.paid, UP.bet_no_team, UB.user_id, NTG.placement, NTG.id, G.game_status, UB.is_multiple, UP.money, Up.odd, UP.id FROM user_parcial_bet UP\
+                            INNER JOIN user_bet UB\
+                            ON UP.user_bet_id = UB.id\
+                            INNER JOIN  game G\
+                            ON UP.game_id = G.id\
+                            INNER JOIN no_team_game NTG\
+                            ON NTG.id = UP.bet_no_team").all()
+    x = {}
+        
+    for bet, *res in result:
+        x.setdefault(bet, []).append(res)
+    
+    return x
+    
         
 def parse_jsons(games, type):
     app.logger.info("Requested games in background")
@@ -346,7 +372,7 @@ def user_get_simple_bets():
     if not user:
         abort(404, "User not found")
     
-    bets = bets_from_db()
+    bets = bets_team_game()
     bets_simple = {}
     bets_multiple = {}
 
@@ -550,6 +576,7 @@ def add_tmp_simple_bet():
             team_side = TeamSide.away
             team_name = game.team_away
     else:
+        game = db.get_or_404(NoTeamGame, game_id)
         player = db.get_or_404(NoTeamGamePlayer, request.form['player_id']) 
         player_bet = player.id
     
@@ -808,19 +835,37 @@ class TmpBets:
         
         for game, bet in games_bets:
             
-            value_enum = bet.bet_team
-
-            if value_enum == TeamSide.home:
-                value = game.team_home
-            elif value_enum == TeamSide.away:
-                value = game.team_away
-            else:
-                value = "Empate"
+            game_outside = db.get_or_404(Game, game.game_id)
             
-            results.append(((game.team_home, game.team_away), value, bet))
+            if game_outside.game_type.value.is_team_game:
+                value_enum = bet.bet_team
+
+                if value_enum == TeamSide.home:
+                    value = game.team_home
+                elif value_enum == TeamSide.away:
+                    value = game.team_away
+                else:
+                    value = "Empate"
+                description = f"{game.team_home} - {game.team_away}"
+            else:
+                player = db.get_or_404(NoTeamGamePlayer, bet.bet_no_team)
+                value = player.name
+                description = game.description
+            
+            results.append((description, value, bet))
 
         return results
 
+    def check_game_present(self, game_id):
+        games_bets = self.multiple if self.is_multiple_selected else self.simple
+        
+        return any(game_id == game.id for game,_ in games_bets)
+        
+    def check_player_present(self, player_id):
+        games_bets = self.multiple if self.is_multiple_selected else self.simple
+        
+        return any(player_id == cached_bet.bet_no_team for _, cached_bet in games_bets)
+        
 
     def add(self, game, bet):
         if self.is_multiple_selected:
