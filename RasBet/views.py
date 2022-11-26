@@ -237,7 +237,13 @@ def games(_type):
     _games = db.session.execute(
         f"SELECT * FROM {'no_' if not game_type.is_team_game else ''}team_game WHERE game_id IN (SELECT id FROM game WHERE game_type='{enum_game_type.name}' AND datetime >= DATETIME('now') AND game_status != 'closed')").all()
 
+   
     games = {row.game_id:row for row in _games}
+    if not game_type.is_team_game:
+        for row in _games:
+            players_list = db.session.execute(
+                f"SELECT * FROM no_team_game_player WHERE no_team_game_id = '{row.game_id}'")
+            games[row.game_id]['players'] = players_list
 
     if 'tmp_bets' not in session:
         session['tmp_bets'] = TmpBets()
@@ -508,31 +514,50 @@ def add_tmp_simple_bet():
 
     tmp_bets = session['tmp_bets'] 
     game_id = int(request.form['game_id'])
+    _type = request.form['type']
+    
+    team_game = None
+
+    try:
+        enum_game_type = GameType(int(_type))
+    except ValueError:
+        try:
+            enum_game_type = GameType[_type.lower()]
+        except KeyError:
+            abort(404, "Tipo não existente")
+    
+    team_game = enum_game_type.is_team_game
     
     game_status = db.session.execute(f"SELECT game_status FROM game WHERE id = '{game_id}'")
     
     if game_status == GameState.suspended:
         abort(501, "Game is suspended")
-        
-    game = db.get_or_404(TeamGame, game_id)   
     
-    team_side = request.form['bet_team']
-    if team_side == "home":
-        team_side = TeamSide.home
-        team_name = game.team_home
-    elif team_side == "draw":
-        team_side = TeamSide.draw
-        team_name = "draw"
+    team_side = None
+    player_bet = None
+    
+    if team_game:
+        game = db.get_or_404(TeamGame, game_id)   
+        team_side = request.form['bet_team']
+        if team_side == "home":
+            team_side = TeamSide.home
+            team_name = game.team_home
+        elif team_side == "draw":
+            team_side = TeamSide.draw
+            team_name = "draw"
+        else:
+            team_side = TeamSide.away
+            team_name = game.team_away
     else:
-        team_side = TeamSide.away
-        team_name = game.team_away
-
+        player = db.get_or_404(NoTeamGamePlayer, request.form['player_id']) 
+        player_bet = player.id
     
     user_partial_bet = UserParcialBet(
         game_id = int(request.form['game_id']),
         odd = float(request.form['odd']),
         money = 0.0,
         bet_team = team_side,
+        bet_no_team = player_bet,
         paid = False
     )
     
@@ -673,8 +698,25 @@ def change_odd(game_id,_type):
     game_id = int(game_id)
     
     new_odd = request.form['new_odd']
-
-    db.session.execute(f"UPDATE team_game SET odd_{team_side} = '{new_odd}' WHERE game_id = '{game_id}'")
+    
+    game_type = request.form['game_type']
+    try:
+        game_type = GameType(int(_type))
+    except ValueError:
+        try:
+            game_type = GameType[_type.lower()]
+        except KeyError:
+            abort(404, "Tipo não existente")
+    
+    team_game = game_type.is_team_game
+    
+    if team_game:
+        db.session.execute(f"UPDATE team_game SET odd_{team_side} = '{new_odd}' WHERE game_id = '{game_id}'")
+    else:
+        player_id = request.form['player_id']
+        player = db.get_or_404(NoTeamGamePlayer, player_id)
+        player.odd = new_odd     
+        
     db.session.commit()
     return redirect(request.referrer)
  
