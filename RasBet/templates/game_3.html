@@ -19,11 +19,13 @@
                 <form action="/specialist/{{ game.id }}/home/update" method="post" style="margin-left: 5%; background-color: white; border: 2px solid black">
                     {{ game.team_home }}
                     <p></p>
+                    <input type="hidden" value="basketball" name="game_type" style="display:none" />
                     <input type="text" placeholder="Alterar odd:{{game.odd_home}}" name="new_odd" style="width:120px; border:1px solid black; margin:auto" />
                 </form>
                 <form action="/specialist/{{ game.id }}/away/update" method="post" style="margin-left: 15%; background-color: white; border: 2px solid black">
                     {{ game.team_away }}
                     <p></p>
+                    <input type="hidden" value="basketball" name="game_type" style="display:none" />
                     <input type="text" placeholder="Alterar odd:{{game.odd_away}}" name="new_odd" style="width:120px; border:1px solid black; margin:auto" />
                 </form>
             </div>
@@ -86,6 +88,7 @@
                     <input type="hidden" value=" {{ game.id }}" name="game_id" style="display:none" />
                     <input type="hidden" value=" {{ game.odd_home }}" name="odd" style="display:none" />
                     <input type="hidden" value="home" name="bet_team" style="display:none" />
+                    <input type="hidden" value="basketball" name="type" style="display:none" />
                     <button type="submit" onclick="this.style.backgroundColor = 'red';">
                         {{ game.team_home }}
                         <p style="margin-bottom:0px"> {{ game.odd_home }} </p>
@@ -95,6 +98,7 @@
                     <input type="hidden" value=" {{ game.id }}" name="game_id" style="display:none" />
                     <input type="hidden" value=" {{ game.odd_away }}" name="odd" style="display:none" />
                     <input type="hidden" value="away" name="bet_team" style="display:none" />
+                    <input type="hidden" value="basketball" name="type" style="display:none" />
                     <button type="submit" onclick="this.style.backgroundColor = 'red';">
                         {{ game.team_away }}
                         <p style="margin-bottom:0px"> {{ game.odd_away }} </p>
@@ -164,6 +168,7 @@
                     <input type="hidden" value=" {{ game.id }}" name="game_id" style="display:none" />
                     <input type="hidden" value=" {{ game.odd_home }}" name="odd" style="display:none" />
                     <input type="hidden" value="home" name="bet_team" style="display:none" />
+                    <input type="hidden" value="basketball" name="type" style="display:none" />
                     <button type="submit" onclick="this.style.backgroundColor = 'red';">
                         {{ game.team_home }}
                         <p style="margin-bottom:0px"> {{ game.odd_home }} </p>
@@ -173,6 +178,7 @@
                     <input type="hidden" value=" {{ game.id }}" name="game_id" style="display:none" />
                     <input type="hidden" value=" {{ game.odd_away }}" name="odd" style="display:none" />
                     <input type="hidden" value="away" name="bet_team" style="display:none" />
+                    <input type="hidden" value="basketball" name="type" style="display:none" />
                     <button type="submit" onclick="this.style.backgroundColor = 'red';">
                         {{ game.team_away }}
                         <p style="margin-bottom:0px"> {{ game.odd_away }} </p>
@@ -196,6 +202,7 @@
                     <input type="hidden" value=" {{ game.id }}" name="game_id" style="display:none" />
                     <input type="hidden" value=" {{ game.odd_home }}" name="odd" style="display:none" />
                     <input type="hidden" value="home" name="bet_team" style="display:none" />
+                    <input type="hidden" value="basketball" name="type" style="display:none" />
                     <button type="submit" onclick="this.style.backgroundColor = 'red';">
                         {{ game.team_home }}
                         <p style="margin-bottom:0px"> {{ game.odd_home }} </p>
@@ -227,6 +234,7 @@
                     <input type="hidden" value=" {{ game.id }}" name="game_id" style="display:none" />
                     <input type="hidden" value=" {{ game.odd_away }}" name="odd" style="display:none" />
                     <input type="hidden" value="away" name="bet_team" style="display:none" />
+                    <input type="hidden" value="basketball" name="type" style="display:none" />
                     <button type="submit" onclick="this.style.backgroundColor = 'red';">
                         {{ game.team_away }}
                         <p style="margin-bottom:0px"> {{ game.odd_away }} </p>

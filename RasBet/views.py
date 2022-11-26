@@ -242,8 +242,9 @@ def games(_type):
     if not game_type.is_team_game:
         for row in _games:
             players_list = db.session.execute(
-                f"SELECT * FROM no_team_game_player WHERE no_team_game_id = '{row.game_id}'")
+                f"SELECT * FROM no_team_game_player WHERE no_team_game_id = '{row.id}'").all()
             new_tup = (row,players_list)
+            print(players_list)
             games[row.game_id] = new_tup
 
     if 'tmp_bets' not in session:
@@ -527,7 +528,7 @@ def add_tmp_simple_bet():
         except KeyError:
             abort(404, "Tipo não existente")
     
-    team_game = enum_game_type.is_team_game
+    team_game = enum_game_type.value.is_team_game
     
     game_status = db.session.execute(f"SELECT game_status FROM game WHERE id = '{game_id}'")
     
@@ -550,6 +551,7 @@ def add_tmp_simple_bet():
             team_side = TeamSide.away
             team_name = game.team_away
     else:
+        game = db.get_or_404(NoTeamGame, game_id)
         player = db.get_or_404(NoTeamGamePlayer, request.form['player_id']) 
         player_bet = player.id
     
@@ -807,17 +809,25 @@ class TmpBets:
         
         
         for game, bet in games_bets:
-            
-            value_enum = bet.bet_team
 
-            if value_enum == TeamSide.home:
-                value = game.team_home
-            elif value_enum == TeamSide.away:
-                value = game.team_away
+            game_outside = db.get_or_404(Game, game.game_id)
+
+            if game_outside.game_type.value.is_team_game:
+                value_enum = bet.bet_team
+
+                if value_enum == TeamSide.home:
+                    value = game.team_home
+                elif value_enum == TeamSide.away:
+                    value = game.team_away
+                else:
+                    value = "Empate"
+                description = f"{game.team_home} - {game.team_away}"
             else:
-                value = "Empate"
-            
-            results.append(((game.team_home, game.team_away), value, bet))
+                player = db.get_or_404(NoTeamGamePlayer, bet.bet_no_team)
+                value = player.name
+                description = game.description
+
+            results.append((description, value, bet))
 
         return results
 
@@ -877,4 +887,13 @@ class TmpBets:
 
         self.is_multiple_selected = True
 
+    def check_game_present(self, game_id):
+        games_bets = self.multiple if self.is_multiple_selected else self.simple
+
+        return any(game_id == game.id for game, _ in games_bets)
+
+    def check_player_present(self, player_id):
+        games_bets = self.multiple if self.is_multiple_selected else self.simple
+        
+        return any(player_id == cached_bet.bet_no_team for _, cached_bet in games_bets)
         
