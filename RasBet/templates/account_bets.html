@@ -25,16 +25,22 @@
             </div>
 
             {% if result == "undefined" %}
-            <div style="margin-left:60%">Jogo nao realizado</div> 
+            <div style="margin-left:60%">Jogo nao realizado</div>
             {% else %}
-            <div style="margin-left:60%">{{result}}</div>
+            {% if result == "home" %}
+            <div style="margin-left:60%">Resultado: {{home}}</div>
+            {% elif result == "draw" %}
+            <div style="margin-left:60%">Resultado: empate</div>
+            {% else %}
+            <div style="margin-left:60%">Resultado: {{away}}</div>
+            {%endif%}
             {%endif%}
         </div>
         {%endfor%}
         {% endfor %}
     </div>
 
-    <div id="Multipla" style=" margin: auto; width: 80%; height:auto;display:none">
+    <div id="Multipla" style="margin: auto; width: 80%; height: 260px; overflow: auto; display: none; margin-top: 5% ">
         {% for betS in bets_multiple.values() %}
         {% for (home,away,result,value,gains,money) in betS %}
         <div style="border: 1px solid black; margin-top:1%; height:100px; width:420px;margin-left:auto;margin-right:auto">
