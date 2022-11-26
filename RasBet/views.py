@@ -243,7 +243,8 @@ def games(_type):
         for row in _games:
             players_list = db.session.execute(
                 f"SELECT * FROM no_team_game_player WHERE no_team_game_id = '{row.game_id}'")
-            games[row.game_id].players = players_list
+            new_tup = (row,players_list)
+            games[row.game_id] = new_tup
 
     if 'tmp_bets' not in session:
         session['tmp_bets'] = TmpBets()
