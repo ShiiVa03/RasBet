@@ -53,15 +53,15 @@
             <div style="border: 1px;padding: 10px; box-shadow: 0px 2px 2px grey; width:100%">
                 <h4 style="text-align: center; font-weight: 700">Boletim</h4>
 
-                <div style="text-align:center">
+                <div style="text-align: center; margin-top: 3%; width: auto">
                     <!-- if multiple bet is selected -->
                     {% if session['tmp_bets'].is_multiple_selected %}
-                    <div style="display:flex">
-                        <form action="/bet/tmp/change_context" method="post" style="margin-left:10%">
+                    <div>
+                        <form action="/bet/tmp/change_context" method="post" >
                             <input type="hidden" value="0" name="multiple" style="display:none" />
-                            <button type="submit" style="border-radius: 15px"> Simples </button>
+                            <button type="submit" style="border-radius: 15px; margin: 0 5%;float:left"> Simples </button>
                         </form>
-                        <button style="border-radius: 15px; background-color:black;color:white; margin-left:15%"> M&uacute;ltipla </button>
+                        <button style="border-radius: 15px; background-color: black; color: white; margin: 0 5% "> M&uacute;ltipla </button>
                     </div>
 
                     {% else %}
