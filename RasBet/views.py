@@ -175,9 +175,10 @@ def generate_tup_no_team(bets_no_team, bets_simple,bets_multiple):
             value = res[9]
             result = res[3]
             money = res[6]
+            user_id = res[2]
             description = f"{res[10]}"
-            
-            new_result.append((description,result,value,gains,money))
+            if session['id'] == user_id:
+                new_result.append((description,result,value,gains,money))
     
         if not res_list[0][5]:
             for tup in new_result:
@@ -201,7 +202,8 @@ def generate_tup_team(bets_team, bets_simple,bets_multiple):
             result = res[3]
             home = res[6]
             away = res[7]
-            money = res[8]           
+            money = res[8]        
+            user_id = res[2]
             
             if team_bet == TeamSide.home.name:
                 value = home
@@ -210,7 +212,8 @@ def generate_tup_team(bets_team, bets_simple,bets_multiple):
             else:
                 value = "Empate"
             description = f"{home} - {away}"
-            
+            if session['id'] == user_id:
+                new_result.append((description,result,value,gains,money))
             new_result.append((description,result,value,gains,money))
     
         if not res_list[0][5]:
