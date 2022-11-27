@@ -24,7 +24,7 @@ class TeamSide(enum.Enum):
 
 class GameType(enum.Enum):
     football = MetaInfoGame(1, "Football", True, True)
-    tennis = MetaInfoGame(2, "Tennis", False, False)
+    tennis = MetaInfoGame(2, "Tennis", True, False)
     basketball = MetaInfoGame(3, "BasketBall", True, False)
     motogp = MetaInfoGame(4, "MotoGP", False, False)
 

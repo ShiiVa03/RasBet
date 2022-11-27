@@ -29,26 +29,26 @@ def get_team_games():
     with app.app_context():
         url_football = "http://ucras.di.uminho.pt/v1/games/"
         basket_path = "RasBet/games/basketball.json"
+        tennis_path = "RasBet/games/tennis.json"
 
         response = requests.request("GET", url_football)
 
         football_games = json.loads(response.text)
         basket_games = json.load(open(basket_path))
+        tennis_games = json.load(open(tennis_path))
 
         parse_jsons(football_games, "football")
+        parse_jsons(tennis_games, "tennis")
         parse_jsons(basket_games, "basketball")
      
         
 @scheduler.task('interval', id='get_no_team_games', seconds=30)
 def get_no_team_games():
     with app.app_context():
-        tennis_path = "RasBet/games/tennis.json"
+        
         motogp_path = "Rasbet/games/motogp.json"
-
-        tennis_games = json.load(open(tennis_path))
         motogp_games = json.load(open(motogp_path))
         
-        parse_jsons(tennis_games, "tennis")
         parse_jsons(motogp_games, "motogp")
         
       
@@ -59,69 +59,99 @@ Background Threads
 @scheduler.task('interval', id='update_balances', seconds=60)
 def update_balances():
     with app.app_context():
-        team_games = bets_team_game()
-        no_team_games = bets_no_team_game()
-        update_not_team_game_balance(no_team_games)
+        bets_team = bets_team_game()
+        bets_no_team = bets_no_team_game()
+        total_bet_dict = {}
+        create_total_bet_from_tg(bets_team, total_bet_dict, 1)
+        create_total_bet_from_tg(bets_no_team, total_bet_dict, 0)
 
-        for bet, res_list in team_games.items():
-            user_balance = db.session.execute(f"SELECT balance FROM user WHERE id = '{res_list[0][2]}'").scalar()
+        for bet, total_bet in total_bet_dict.items():
+            user_balance = db.session.execute(f"SELECT balance FROM user WHERE id = '{total_bet.user_id}'").scalar()
  
-            if not res_list[0][5]:
-                for tup in res_list:
-                    if not tup[0] and tup[3] != TeamSide.undefined.name and tup[4] == GameState.closed.name:
-                        if tup[3] == tup[1]:
-                            gains = tup[8] * tup[9]  
-                            new_user_balance = user_balance + gains                      
-                            db.session.execute(f"UPDATE user SET balance = '{new_user_balance}' WHERE id = '{tup[2]}'")
-                            
-                            transaction = create_transaction(tup[2], gains, new_user_balance)
-                            db.session.add(transaction)   
-                            db.session.execute(f"UPDATE user_parcial_bet SET paid = 'True' WHERE id = '{tup[10]}'")
-            else:
-                if len(list(filter(lambda x: x[4] == GameState.closed and x[3] != TeamSide.undefined and not x[0] and x[3] == x[1], res_list))) == len(res_list):
-                    gains = res_list[0][8] * prod([x[9] for x in res_list])
-                    new_user_balance = user_balance + gains
-                    db.session.execute(f"UPDATE user SET balance = '{new_user_balance}' WHERE id = '{res_list[0][2]}'")
-                    
-                    transaction = create_transaction(res_list[0][2], gains, new_user_balance)
-                    ids = tuple([x[10] for x in res_list])
-                    db.session.add(transaction)
-                    db.session.execute(f"UPDATE user_parcial_bet SET paid = 'True' WHERE id IN {ids}")
-       
-        db.session.commit()
-        
-            
-'''
-Utility functions
-'''
-
-def update_not_team_game_balance(no_team_games):
-     for bet, res_list in no_team_games.items():
-            user_balance = db.session.execute(f"SELECT balance FROM user WHERE id = '{res_list[0][2]}'").scalar()
- 
-            if not res_list[0][5]:
-                for tup in res_list:
+            if not total_bet.multiple():
+                for tup in total_bet.no_team_games:
                     if not tup[0] and tup[3] and tup[4] == GameState.closed.name:
                         if tup[3] == 1:
                             gains = tup[6] * tup[7]  
                             new_user_balance = user_balance + gains                      
                             db.session.execute(f"UPDATE user SET balance = '{new_user_balance}' WHERE id = '{tup[2]}'")
                             
-                            transaction = create_transaction(tup[2], gains, new_user_balance)
+                            transaction = create_transaction(total_bet.user_id, gains, new_user_balance)
                             db.session.add(transaction)   
                             db.session.execute(f"UPDATE user_parcial_bet SET paid = 'True' WHERE id = '{tup[8]}'")
+                            
+                for tup in total_bet.team_games:
+                    if not tup[0] and tup[3] != TeamSide.undefined.name and tup[4] == GameState.closed.name:
+                        if tup[3] == tup[1]:
+                            gains = tup[8] * tup[9]  
+                            new_user_balance = user_balance + gains                      
+                            db.session.execute(f"UPDATE user SET balance = '{new_user_balance}' WHERE id = '{tup[2]}'")
+                            
+                            transaction = create_transaction(total_bet.user_id, gains, new_user_balance)
+                            db.session.add(transaction)   
+                            db.session.execute(f"UPDATE user_parcial_bet SET paid = 'True' WHERE id = '{tup[10]}'")
             else:
-                if len(list(filter(lambda x: x[4] == GameState.closed and x[3] == 1 and not x[0], res_list))) == len(res_list):
-                    gains = res_list[0][6] * prod([x[7] for x in res_list])
-                    new_user_balance = user_balance + gains
-                    db.session.execute(f"UPDATE user SET balance = '{new_user_balance}' WHERE id = '{res_list[0][2]}'")
-                    
-                    transaction = create_transaction(res_list[0][2], gains, new_user_balance)
-                    ids = tuple([x[8] for x in res_list])
-                    db.session.add(transaction)
-                    db.session.execute(f"UPDATE user_parcial_bet SET paid = 'True' WHERE id IN {ids}")
+                if len(list(filter(lambda x: x[4] == GameState.closed and x[3] == 1 and not x[0], total_bet.no_team_games))) == len(total_bet.no_team_games) and \
+                        len(list(filter(lambda x: x[4] == GameState.closed and x[3] != TeamSide.undefined and not x[0] and x[3] == x[1], total_bet.team_games))) == len(total_bet.team_games):
 
+                    new_user_balance = user_balance + total_bet.gains
+                    db.session.execute(f"UPDATE user SET balance = '{new_user_balance}' WHERE id = '{total_bet_dict.user_id}'")
+                    
+                    transaction = create_transaction(total_bet.user_id, total_bet.gains, new_user_balance)
+                    ids_team_game = [x[10] for x in total_bet.team_games]
+                    ids_no_team_game = [x[8] for x in total_bet.no_team_games]
+                    db.session.add(transaction)
+                    db.session.execute(f"UPDATE user_parcial_bet SET paid = 'True' WHERE id IN {tuple(ids_team_game + ids_no_team_game)}")
+            db.session.commit()
+        
+            
+'''
+Utility functions
+'''
+
+class TotalBet():
+    def __init__(self, user_id, is_multiple):
+        self.team_games = []
+        self.no_team_games = []
+        self.is_multiple = is_multiple
+        self.user_id = user_id
+        self.gains = 0
     
+    def add_team_game(self, tup):
+        if self.is_multiple:
+            if not self.gains:
+                self.gains = tup[8] * tup[9]
+            else:
+                self.gains *= tup[9]
+        
+        self.team_games.append(tup)
+    
+    def add_no_team_game(self, tup):
+        if self.is_multiple:
+            if not self.gains:
+                self.gains = tup[6] * tup[7]
+            else:
+                self.gains *= tup[7]
+        
+        self.no_team_games.append(tup)
+        
+    def multiple(self):
+        return self.is_multiple
+        
+    
+    def get_user_id(self):
+        return self.user_id
+        
+
+def create_total_bet_from_tg(games, total_bets, team_game):
+    for bet, res_list in games.items():
+        if not bet in total_bets:
+            total_bets[bet] = TotalBet(res_list[0][2], res_list[0][5])
+        for tup in res_list:
+            if team_game:                    
+                total_bets[bet].add_team_game(tup)
+            else: 
+                total_bets[bet].add_no_team_game(tup)
 
 
 def create_transaction(user_id, value, new_balance):
@@ -157,75 +187,14 @@ def bets_no_team_game():
                             INNER JOIN no_team_game_player NTGP\
                             ON NTGP.id = UP.bet_no_team\
                             INNER JOIN no_team_game NTG\
-                            ON NTGP.no_team_game_id = G.id").all()
+                            ON NTGP.no_team_game_id = NTG.id").all()
     x = {}
         
     for bet, *res in result:
         x.setdefault(bet, []).append(res)
     
     return x
-
-def generate_tup_no_team(bets_no_team, bets_simple,bets_multiple):
-    for _, res_list in bets_no_team.items():
-        new_result = []
-       
-        for res in res_list:
-            
-            gains = "{:.2f}".format(res[6] * res[7])
-            value = res[9]
-            result = res[3]
-            money = res[6]
-            user_id = res[2]
-            description = f"{res[10]}"
-            if session['id'] == user_id:
-                new_result.append((description,result,value,gains,money))
     
-        if not res_list[0][5]:
-            for tup in new_result:
-                bets_simple.append(tup)
-        else:
-            gains =  "{:.2f}".format(res_list[0][6] * prod([x[7] for x in res_list]))
-            for tup in new_result:
-                x = list(tup)
-                x[3] = gains
-                new_tup = tuple(x)
-                bets_multiple.append(new_tup)
-                
-def generate_tup_team(bets_team, bets_simple,bets_multiple):
-    for _, res_list in bets_team.items():
-        new_result = []
-       
-        for res in res_list:
-            
-            gains = "{:.2f}".format(res[8] * res[9])
-            team_bet = res[1]
-            result = res[3]
-            home = res[6]
-            away = res[7]
-            money = res[8]        
-            user_id = res[2]
-            
-            if team_bet == TeamSide.home.name:
-                value = home
-            elif team_bet == TeamSide.away.name:
-                value = away
-            else:
-                value = "Empate"
-            description = f"{home} - {away}"
-            if session['id'] == user_id:
-                new_result.append((description,result,value,gains,money))
-            new_result.append((description,result,value,gains,money))
-    
-        if not res_list[0][5]:
-            for tup in new_result:
-                bets_simple.append(tup)
-        else:
-            gains =  "{:.2f}".format(res_list[0][8] * prod([x[9] for x in res_list]))
-            for tup in new_result:
-                x = list(tup)
-                x[3] = gains
-                new_tup = tuple(x)
-                bets_multiple.append(new_tup)
         
 def parse_jsons(games, type):
     app.logger.info("Requested games in background")
@@ -315,14 +284,27 @@ def parse_jsons(games, type):
             db.session.commit()       
         else:
             if game_type.is_team_game:
-                team_game = db.session.execute(f"SELECT * FROM team_game WHERE game_id = '{db_game.id}'").first()
-                db.session.execute(f"UPDATE team_game SET odd_home = '{home_odd}',odd_away = '{away_odd}', odd_draw = '{draw_odd}' WHERE game_id = '{db_game.id}'")
+                if game['scores']:
+                    home_result, away_result = list(map(int, game['scores'].split('x')))
+                    db_game.game_status = GameState.closed
+
+                    if home_result > away_result:
+                        result = TeamSide.home
+                    elif home_result < away_result:
+                        result = TeamSide.away
+                    else:
+                        if game_type.has_draws:
+                            result = TeamSide.draw
+                else:
+                    result = TeamSide.undefined
             else:
-                no_team_game = db.session.execute(f"SELECT * FROM no_team_game WHERE game_id = '{db_game.id}'").first()
-                no_team_game_players = db.session.execute(f"SELECT * FROM no_team_game_player WHERE no_team_game_id = '{no_team_game.id}'").all()
+                if game['completed']:
+                    no_team_game = db.session.execute(f"SELECT * FROM no_team_game WHERE game_id = '{db_game.id}'").first()
+                    no_team_game_players = db.session.execute(f"SELECT * FROM no_team_game_player WHERE no_team_game_id = '{no_team_game.id}'").all()
                 
-                for no_team_game_player in no_team_game_players:
-                    db.session.execute(f"UPDATE no_team_game_player SET placement = '{placements[no_team_game_player.name]}', odd = '{odds[no_team_game_player.name]}' WHERE id = '{no_team_game_player.id}'")
+                    for no_team_game_player in no_team_game_players:
+                        db.session.execute(f"UPDATE no_team_game_player SET placement = '{placements[no_team_game_player.name]}' WHERE id = '{no_team_game_player.id}'")
+
             db.session.commit()
     
 
@@ -346,15 +328,20 @@ def games(_type):
     _games = db.session.execute(
         f"SELECT * FROM {'no_' if not game_type.is_team_game else ''}team_game WHERE game_id IN (SELECT id FROM game WHERE game_type='{enum_game_type.name}' AND datetime >= DATETIME('now') AND game_status != 'closed')").all()
 
-   
+        
     games = {row.game_id:row for row in _games}
-    if not game_type.is_team_game:
-        for row in _games:
+    
+    for row in _games:
+        game_status = db.session.execute(
+                f"SELECT game_status FROM game WHERE '{row.id}' = '{row.game_id}'").scalar()
+        if not game_type.is_team_game:
             players_list = db.session.execute(
-                f"SELECT * FROM no_team_game_player WHERE no_team_game_id = '{row.id}'").all()
-            new_tup = (row,players_list)
-            print(players_list)
-            games[row.game_id] = new_tup
+            f"SELECT * FROM no_team_game_player WHERE no_team_game_id = '{row.id}'").all()
+            new_tup = (row, players_list, game_status)
+        else:
+            new_tup = (row, game_status)
+        
+        games[row.game_id] = new_tup
 
     if 'tmp_bets' not in session:
         session['tmp_bets'] = TmpBets()
@@ -448,6 +435,7 @@ def user_transactions():
         balance = user.balance
     )
 
+               
 @app.get('/user/bets')
 def user_get_simple_bets():
     
@@ -455,22 +443,57 @@ def user_get_simple_bets():
     
     if not user:
         abort(404, "User not found")
-    
     bets_team = bets_team_game()
     bets_no_team = bets_no_team_game()
+    total_bet_dict = {}
+    create_total_bet_from_tg(bets_team, total_bet_dict, 1)
+    create_total_bet_from_tg(bets_no_team, total_bet_dict, 0)
+    
     bets_simple = []
     bets_multiple = []
     
-    generate_tup_no_team(bets_no_team, bets_simple, bets_multiple)
-    generate_tup_team(bets_team, bets_simple, bets_multiple)
+    for bet,total_bet in total_bet_dict.items():
+        if total_bet.get_user_id() == user.id:
+            for tg in total_bet.team_games:
+                team_bet = tg[1]
+                result = tg[3]
+                home = tg[6]
+                away = tg[7]
+                money = tg[8]
+                gains = "{:.2f}".format(tg[8] * tg[9])
+                    
+                if team_bet == TeamSide.home.name:
+                    value = home
+                elif team_bet == TeamSide.away.name:
+                    value = away
+                else:
+                    value = "Empate"
+                description = f"{home} - {away}"
+                
+                if total_bet.multiple():
+                    bets_multiple.append((description,result,value,total_bet.gains,money))
+                else:
+                    bets_simple.append((description,result,value,gains,money))
+                
+            for tg in total_bet.no_team_games:
+                gains = "{:.2f}".format(tg[6] * tg[7])
+                value = tg[9]
+                result = tg[3]
+                money = tg[6]
+                description = f"{tg[10]}"
     
-    print(bets_simple)
+                if total_bet.multiple():
+                    bets_multiple.append((description,result,value,total_bet.gains,money))
+                else:
+                    bets_simple.append((description,result,value,gains,money))
+    
     
     return render_template(
         'account_bets.html',
         bets_simple = bets_simple,
         bets_multiple = bets_multiple
     )
+  
     
   
 
@@ -595,7 +618,6 @@ def log_out():
 
 @app.post('/bet/tmp/add/')
 def add_tmp_simple_bet():
-
     tmp_bets = session['tmp_bets'] 
     game_id = int(request.form['game_id'])
     _type = request.form['type']
@@ -621,7 +643,7 @@ def add_tmp_simple_bet():
     player_bet = None
     
     if team_game:
-        game = db.get_or_404(TeamGame, game_id)   
+        game = db.session.execute(f"SELECT * FROM team_game WHERE game_id = '{game_id}'").one() 
         team_side = request.form['bet_team']
         if team_side == "home":
             team_side = TeamSide.home
@@ -633,7 +655,7 @@ def add_tmp_simple_bet():
             team_side = TeamSide.away
             team_name = game.team_away
     else:
-        game = db.get_or_404(NoTeamGame, game_id)
+        game = db.session.execute(f"SELECT * FROM no_team_game WHERE game_id = '{game_id}'").one()
         player = db.get_or_404(NoTeamGamePlayer, request.form['player_id']) 
         player_bet = player.id
     
@@ -816,9 +838,11 @@ def update_game_state(game_id, state):
         except KeyError:
             abort(404, "Tipo de estado nao existente")
     
+    print(game_id)
+
     game_state = enum_game_state.name    
-    game_status = db.session.execute(f"SELECT game_status FROM game WHERE id = '{int(game_id)}'")
-    
+    game_status = db.session.execute(f"SELECT game_status FROM game WHERE id = '{int(game_id)}'").one()
+
     if game_status == game_state:
         abort(404, "Não é possível mudar o estado do jogo para o mesmo")
     

@@ -1,6 +1,6 @@
 [
     {
-        "id": "01",
+        "id": "basket01",
         "homeTeam": "Minnesota Timberwolves",
         "awayTeam": "Charlotte Hornets",
         "commenceTime": "2022-12-02T17:00:00.000Z",
@@ -181,7 +181,7 @@
         ]
     },
     {
-        "id": "02",
+        "id": "basket02",
         "homeTeam": "Philadelphia 76ers",
         "awayTeam": "Orlando Magic",
         "commenceTime": "2022-12-02T19:00:00.000Z",

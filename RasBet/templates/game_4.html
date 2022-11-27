@@ -65,7 +65,7 @@
                         {% for player in game[1] %}
                         <!-- Bet Buttons-->
                         <form action="/bet/tmp/add/" method="post" style=" width:30%;display:inline-block;margin-top:5%">
-                            <input type="hidden" value=" {{ game[0].id }}" name="game_id" style="display:none" />
+                            <input type="hidden" value=" {{ game[0].game_id }}" name="game_id" style="display:none" />
                             <input type="hidden" value=" {{ player.odd }}" name="odd" style="display:none" />
                             <input type="hidden" value=" {{ player.id }}" name="player_id" style="display:none" />
                             <input type="hidden" value="motogp" name="type" style="display:none" />
@@ -113,7 +113,7 @@
                         <!--Caso jogador nao apostado-->
                              {% else %}
                                 <form action="/bet/tmp/add/" method="post" style=" width:30%;display:inline-block;margin-top:5%">
-                                    <input type="hidden" value=" {{ game[0].id }}" name="game_id" style="display:none" />
+                                    <input type="hidden" value=" {{ game[0].game_id }}" name="game_id" style="display:none" />
                                     <input type="hidden" value=" {{ player.odd }}" name="odd" style="display:none" />
                                     <input type="hidden" value=" {{ player.id }}" name="player_id" style="display:none" />
                                     <input type="hidden" value="motogp" name="type" style="display:none" />
@@ -129,7 +129,7 @@
                         {% for player in game[1] %}
                         <!-- Bet Buttons-->
                         <form action="/bet/tmp/add/" method="post" style=" width:30%;display:inline-block;margin-top:5%">
-                            <input type="hidden" value=" {{ game[0].id }}" name="game_id" style="display:none" />
+                            <input type="hidden" value=" {{ game[0].game_id }}" name="game_id" style="display:none" />
                             <input type="hidden" value=" {{ player.odd }}" name="odd" style="display:none" />
                             <input type="hidden" value=" {{ player.id }}" name="player_id" style="display:none" />
                             <input type="hidden" value="motogp" name="type" style="display:none" />
