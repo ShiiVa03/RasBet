@@ -64,6 +64,9 @@
       <SubType>Code</SubType>
     </Content>
     <Content Include="RasBet\templates\game_1.html" />
+    <Content Include="RasBet\templates\game_2.html">
+      <SubType>Code</SubType>
+    </Content>
     <Content Include="RasBet\templates\game_3.html">
       <SubType>Code</SubType>
     </Content>

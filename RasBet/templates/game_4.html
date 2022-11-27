@@ -4,6 +4,78 @@
 
 {% if session['type'] == "admin" %}
 
+<div style="margin:auto; align-self:center; width:80%; height:100%">
+    <h1 style="text-align:center">Destaques</h1>
+    <div style="overflow: auto; height: auto; width: 900px; height:560px;margin:auto">
+        {% for game, _, status in games.values() %}
+        <div style="background-color: lightgray; margin: 20px 0;color:black ; height:100px">
+            <div style="height:5px"></div>
+            <div style="margin-left:1%;float:left; width:33%">
+                <h4 style="margin-top:1%"> {{ game.description }}</h4>
+                <h4 style="color:gray"> {{ game.datetime.split(' ', 1)[0] }}  </h4>
+                <h4 style="color:gray"> Estado: {{ status }}  </h4>
+            </div>
+            {% if status == "active" %}
+            <div style="display: flex; margin-top: 15px; width: 30%">
+                <div style="margin-left: 5%; width: 30%">
+                    <button style="background-color: green">
+                        Ativo
+                    </button>
+                </div>
+                <form action="/admin/{{ game.game_id }}/update/suspended" method="post" style="margin-left: 35%;">
+                    <button type="submit" onclick="this.style.backgroundColor = 'red';">
+                        Suspender
+                    </button>
+                </form>
+                <form action="/admin/{{ game.game_id }}/update/closed" method="post" style="margin-left: 35%;">
+                    <button type="submit" onclick="this.style.backgroundColor = 'red';">
+                        Fechar
+                    </button>
+                </form>
+            </div>
+            {% elif status == "suspended" %}
+            <div style="display: flex; margin-top: 15px; width: 30%">
+                <form action="/admin/{{ game.game_id }}/update/active" method="post" style="margin-left: 5%;">
+                    <button type="submit">
+                        Ativar
+                    </button>
+                </form>
+                <div style="margin-left: 35%; width: 30%">
+                    <button style="background-color: red">
+                        Suspenso
+                    </button>
+                </div>
+                <form action="/admin/{{ game.game_id }}/update/closed" method="post" style="margin-left: 35%;">
+                    <button type="submit" onclick="this.style.backgroundColor = 'red';">
+                        Fechar
+                    </button>
+                </form>
+            </div>
+            {% else %}
+            <div style="display: flex; margin-top: 15px; width: 30%">
+                <form action="/admin/{{ game.game_id }}/update/active" method="post" style="margin-left: 5%;">
+                    <button type="submit" onclick="this.style.backgroundColor = 'red';">
+                        Ativar
+                    </button>
+                </form>
+                <form action="/admin/{{ game.game_id }}/update/suspended" method="post" style="margin-left: 35%;">
+                    <button type="submit" onclick="this.style.backgroundColor = 'red';">
+                        Suspender
+                    </button>
+                </form>
+                <div style="margin-left: 35%; width: 30%">
+                    <button style="background-color: red">
+                        Fechado
+                    </button>
+                </div>
+            </div>
+            {%endif%}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+
 {% elif session['type'] == "especialista" %}
 <div style="margin:auto; align-self:center; width:80%; height:100%">
     <h1 style="text-align:center">MotoGP</h1>
@@ -17,7 +89,7 @@
             </div>
             <div style="margin:auto; width:100%; text-align:center">
                 {% for player in game[1] %}
-                <form action="/specialist/{{ game[0].id }}/update" method="post" style=" width:30%;display:inline-block;margin-top:5%">
+                <form action="/specialist/{{ game[0].game_id }}/update" method="post" style=" width:30%;display:inline-block;margin-top:5%">
                     <div style="background-color: white; width: 130px; height: 80px; margin:auto; border: 1px solid black">
                         {{ player.name }}
                         <p></p>
@@ -55,13 +127,19 @@
                     <h4 style="margin-top:1%"> {{game[0].description}}</h4>
                 </div>
                 <h4 style="color:gray"> {{ game[0].datetime.split(' ', 1)[0] }}  </h4>
-
-
+                {% if game[2] == "suspended" %}
+                <div style="width:100%; color:gray;">
+                    <div style="margin-top:3%; text-align:center">Jogo suspenso, impossivel de fazer aposta!</div>
+                </div>
+                <div style="height:10px"></div>
             </div>
+            {% else %}
+
+        </div>
             <div style="margin:auto; width:100%; text-align:center">
                 <!--Caso multiple Selected-->
                 {% if session['tmp_bets'].is_multiple_selected %}
-                    {% if not session["tmp_bets"].check_game_present(game[0].id) %}
+                    {% if not session["tmp_bets"].check_game_present(game[0].game_id) %}
                         {% for player in game[1] %}
                         <!-- Bet Buttons-->
                         <form action="/bet/tmp/add/" method="post" style=" width:30%;display:inline-block;margin-top:5%">
@@ -100,7 +178,7 @@
                 <!--Caso simple selected-->
                 {% else %}
                     <!--Caso jogo ja apostado-->
-                    {% if session["tmp_bets"].check_game_present(game[0].id) %}
+                    {% if session["tmp_bets"].check_game_present(game[0].game_id) %}
                         {% for player in game[1] %}
                         <!--Caso jogador ja apostado-->
                             {% if session["tmp_bets"].check_player_present(player.id) %}
@@ -143,7 +221,7 @@
                 {%endif%}
             </div>
             <div style="height:5px"></div>
-
+            {% endif %}
             {% endfor %}
         </div>
         </div>

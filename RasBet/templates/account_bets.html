@@ -53,7 +53,7 @@
                 <h5 style="font-weight: 700;">Possiveis ganhos: {{ gains }} &euro;</h5>
             </div>
 
-            {% if result == "undefined" %}
+            {% if result == "undefined" or not result %}
             <div style="margin-left:60%">Jogo nao realizado</div>
             {% else %}
             {% if result == "home" %}
