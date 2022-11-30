@@ -10,8 +10,8 @@
         <form class="form2" action="/user/login" method="post">
             <img src="https://media.discordapp.net/attachments/1017873426326765578/1032720305937985606/2-removebg-preview.png" style="width: auto; height: 75px" />
             <h1>Bem Vindo</h1>
-            <input type="email" placeholder="Email" name="email" />
-            <input type="password" placeholder="Password" name="passwd" />
+            <input type="email" placeholder="Email" name="email" required/>
+            <input type="password" placeholder="Password" name="passwd" required pattern="[A-Za-z0-9]{1,20}" title="preencha este campo" />
             <a href="#">Esqueceu palavra-passe?</a>
             <button type="submit">Entrar</button>
         </form>
@@ -22,11 +22,11 @@
             <div class="overlay-panel overlay-right">
                 <h1 style="color:white">Registo</h1>
                 <form style="" action="/user/register" method="post">
-                    <input type="text" placeholder="Nome" name="name" />
-                    <input type="email" placeholder="Email" name="email" />
-                    <input type="password" placeholder="Palavra Passe" name="passwd" />
-                    <input placeholder="Data de Nascimento" class="textbox-n" type="text" onfocus="(this.type='date')" onblur="(this.type='text')" id="date" name="birthdate" />
-                    <input type="text" placeholder="Nif" name="nif" />
+                    <input type="text" placeholder="Nome" name="name" required pattern="[A-Za-z0-9]{1,20}" title="preencha este campo" />
+                    <input type="email" placeholder="Email" name="email" required  />
+                    <input type="password" placeholder="Palavra Passe" name="passwd" required pattern="[A-Za-z0-9]{1,20}" title="preencha este campo" />
+                    <input placeholder="Data de Nascimento" class="textbox-n" type="text" onfocus="(this.type='date')" onblur="(this.type='text')" id="date" name="birthdate" required name="date" id="date" />
+                    <input type="text" placeholder="Nif" name="nif" required pattern="\d{8}" title="nif invalido" />
                     <button type="submit" style="background-color: #ffffff; color:red">Registar</button>
                 </form>
             </div>
