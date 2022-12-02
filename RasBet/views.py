@@ -332,8 +332,14 @@ def games(_type):
     games = {row.game_id:row for row in _games}
     
     for row in _games:
-        game_status = db.session.execute(
-                f"SELECT game_status FROM game WHERE '{row.id}' = '{row.game_id}'").scalar()
+        game = db.get_or_404(Game,row.game_id)
+        game_status = None
+
+        if game.game_status == GameState.active:
+            game_status = "active"
+        else:
+            game_status = "suspended"
+
         if not game_type.is_team_game:
             players_list = db.session.execute(
             f"SELECT * FROM no_team_game_player WHERE no_team_game_id = '{row.id}'").all()
@@ -359,8 +365,13 @@ def home():
 
     games = {row.game_id:row for row in _games}
     for row in _games:
-        game_status = db.session.execute(
-                f"SELECT game_status FROM game WHERE '{row.id}' = '{row.game_id}'").scalar()
+        game = db.get_or_404(Game,row.game_id)
+        game_status = None
+
+        if game.game_status == GameState.active:
+            game_status = "active"
+        else:
+            game_status = "suspended"
         games[row.game_id] = (row, game_status)
     
     if 'tmp_bets' not in session:
