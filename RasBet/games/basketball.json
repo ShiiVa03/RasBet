@@ -3,7 +3,7 @@
         "id": "basket01",
         "homeTeam": "Minnesota Timberwolves",
         "awayTeam": "Charlotte Hornets",
-        "commenceTime": "2022-12-02T17:00:00.000Z",
+        "commenceTime": "2023-01-27T17:00:00.000Z",
         "completed": false,
         "scores": null,
         "bookmakers":[
@@ -184,7 +184,7 @@
         "id": "basket02",
         "homeTeam": "Philadelphia 76ers",
         "awayTeam": "Orlando Magic",
-        "commenceTime": "2022-12-02T19:00:00.000Z",
+        "commenceTime": "2023-01-27T19:00:00.000Z",
         "completed": false,
         "scores": null,
         "bookmakers":[
@@ -365,7 +365,7 @@
         "id": "03",
         "homeTeam": "Portland Trail Blazers",
         "awayTeam": "New York Knicks",
-        "commenceTime": "2022-12-02T19:30:00.000Z",
+        "commenceTime": "2023-01-27T19:30:00.000Z",
         "completed": false,
         "scores": null,
         "bookmakers":[
@@ -546,7 +546,7 @@
         "id": "04",
         "homeTeam": "Brooklyn Nets",
         "awayTeam": "Indiana Pacers",
-        "commenceTime": "2022-12-02T20:00:00.000Z",
+        "commenceTime": "2023-01-27T20:00:00.000Z",
         "completed": false,
         "scores": null,
         "bookmakers":[
@@ -727,7 +727,7 @@
         "id": "05",
         "homeTeam": "Sacramento Kings",
         "awayTeam": "Boston Celtics",
-        "commenceTime": "2022-12-02T20:00:00.000Z",
+        "commenceTime": "2023-01-27T20:00:00.000Z",
         "completed": false,
         "scores": null,
         "bookmakers":[
@@ -908,7 +908,7 @@
         "id": "06",
         "homeTeam": "Washington Wizards",
         "awayTeam": "Miami Heat",
-        "commenceTime": "2022-12-02T20:00:00.000Z",
+        "commenceTime": "2023-01-27T20:00:00.000Z",
         "completed": false,
         "scores": null,
         "bookmakers":[
@@ -1032,7 +1032,7 @@
         "id": "07",
         "homeTeam": "Chicago Bulls Bulls",
         "awayTeam": "Oklahoma City Thunder",
-        "commenceTime": "2022-12-02T20:00:00.000Z",
+        "commenceTime": "2023-01-27T20:00:00.000Z",
         "completed": false,
         "scores": null,
         "bookmakers":[
@@ -1213,7 +1213,7 @@
         "id": "08",
         "homeTeam": "New Orleans Pelicans",
         "awayTeam": "Memphis Grizzlies",
-        "commenceTime": "2022-12-02T20:00:00.000Z",
+        "commenceTime": "2023-01-27T20:00:00.000Z",
         "completed": false,
         "scores": null,
         "bookmakers":[
@@ -1394,7 +1394,7 @@
         "id": "09",
         "homeTeam": "Cleveland Cavaliers",
         "awayTeam": "Milwaukee Bucks",
-        "commenceTime": "2022-12-02T20:00:00.000Z",
+        "commenceTime": "2023-01-27T20:00:00.000Z",
         "completed": false,
         "scores": null,
         "bookmakers":[
@@ -1575,7 +1575,7 @@
         "id": "10",
         "homeTeam": "Atlanta Hawks",
         "awayTeam": "Houston Rockets",
-        "commenceTime": "2022-12-02T20:00:00.000Z",
+        "commenceTime": "2023-01-27T20:00:00.000Z",
         "completed": false,
         "scores": null,
         "bookmakers":[

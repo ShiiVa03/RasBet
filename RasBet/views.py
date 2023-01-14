@@ -15,7 +15,7 @@ from dateutil.relativedelta import relativedelta
 from flask import render_template, session, url_for, abort, request, redirect
 from RasBet import app, db, scheduler, specialized_accounts
 
-from .models import TeamGame, User, Transaction, Game, GameType, UserBet, UserParcialBet, TeamSide, GameState, NoTeamGame, NoTeamGamePlayer
+from .models import TeamGame, User, Transaction, Game, GameType, UserBet, UserParcialBet, TeamSide, GameState, NoTeamGame, NoTeamGamePlayer, Observer
 from math import prod
 
 
@@ -328,7 +328,11 @@ def games(_type):
     _games = db.session.execute(
         f"SELECT * FROM {'no_' if not game_type.is_team_game else ''}team_game WHERE game_id IN (SELECT id FROM game WHERE game_type='{enum_game_type.name}' AND datetime >= DATETIME('now') AND game_status != 'closed')").all()
 
-        
+    subscriptions = None
+    if 'id' in session:
+        user_id = session['id']        
+        subscriptions = db.session.execute(f"SELECT * FROM observer WHERE id_user = '{user_id}'").all() 
+       
     games = {row.game_id:row for row in _games}
     
     for row in _games:
@@ -352,7 +356,7 @@ def games(_type):
     if 'tmp_bets' not in session:
         session['tmp_bets'] = TmpBets()
 
-    return render_template(f'game_{game_type.value}.html', games=games)
+    return render_template(f'game_{game_type.value}.html', games=games, subscriptions = subscriptions)
 
     
 
@@ -362,6 +366,11 @@ def games(_type):
 def home():
     """Renders the home page."""
     _games = db.session.execute("SELECT * FROM team_game WHERE game_id IN (SELECT id FROM game WHERE date(datetime)=DATE('now') AND game_status != 'closed' AND game_type = 'football')").all()
+
+    subscriptions = None
+    if 'id' in session:
+        user_id = session['id']        
+        subscriptions = db.session.execute(f"SELECT * FROM observer WHERE id_user = '{user_id}'").all()   
 
     games = {row.game_id:row for row in _games}
     for row in _games:
@@ -381,7 +390,9 @@ def home():
         'index.html',
         title='Home Page',
         year=datetime.now().year,
-        games = games
+        games = games,
+        subscriptions = subscriptions
+        
     )
 
 @app.route('/contact/')
@@ -509,7 +520,18 @@ def user_get_simple_bets():
         bets_multiple = bets_multiple
     )
   
+
+@app.get('/user/notifs')
+def user_get_notifs():
     
+    user = db.get_or_404(User, session['id'])
+    
+    notifs = db.session.execute(f"SELECT * FROM notifications WHERE user_id = '{user.id}' and read = 'False'")
+    
+    for notif in notifs:
+        notif.read = True
+
+    db.session.commit()
   
 
 
@@ -705,6 +727,31 @@ def del_tmp_bet():
     session['tmp_bets'].pop(index)
     return redirect(request.referrer)
 
+@app.post('/game/<game_id>/subscribe/')
+def subscribe(game_id):
+    game_id = int(game_id)
+    
+    observer = Observer(
+        id_game = game_id,
+        id_user = session['id']
+    )
+    
+    db.session.add(observer)
+    db.session.commit()
+
+@app.post('/game/<game_id>/unsubscribe/')
+def unsubscribe(game_id):
+    game_id = int(game_id)
+    
+    user_id = session['id']
+    result = db.session.execute(f"SELECT * FROM observer WHERE id_game = {game_id} and id_user = {user_id}").first()
+    
+    if not result:
+        abort(404, "Not subscribed")   
+    
+    db.session.execute(f"DELETE FROM observer WHERE id_game = {game_id} and id_user = {user_id}")
+    db.session.commit()    
+    
     
 @app.post('/bet/create/')
 def bet_simple():
@@ -720,6 +767,12 @@ def bet_simple():
     
     if total_spent > user_balance:
         abort(500, 'Valor de aposta superior ao saldo')
+    
+    observers = tmp_bets.get_game_ids()
+    
+    for observer in observers:
+        db.session.execute(f"INSERT OR REPLACE INTO observer ('id_game', 'id_user') VALUES ({observer}, {user.id})")
+    
     
     user_bet = UserBet(
         user_id = session['id'],
@@ -821,6 +874,7 @@ def change_odd(game_id):
     
     team_game = enum_game_type.value.is_team_game
     
+    description = ""
     if team_game:
         team_side = None
         try:
@@ -832,11 +886,24 @@ def change_odd(game_id):
                 abort(404, "Lado não existente")
     
         team_side = enum_team_side.name
+        team_game = db.session.execute(f"SELECT * FROM team_game WHERE game_id = '{game_id}'").first()
+        
+        description = f"Jogo entre {team_game.team_home} e {team_game.team_away} alterou de odd"
         db.session.execute(f"UPDATE team_game SET odd_{team_side} = '{new_odd}' WHERE game_id = '{game_id}'")
     else:
         player_id = request.form['player_id']
+        
+        no_team_game = db.session.execute(f"SELECT * FROM no_team_game WHERE game_id = '{game_id}'")
+        description = f"Jogo {no_team_game.description} mudou de odd"
+
         player = db.get_or_404(NoTeamGamePlayer, player_id)
-        player.odd = new_odd     
+        player.odd = new_odd
+        
+    observers = db.session.execute(f"SELECT * FROM observer where id_game='{game_id}'").all()
+    
+    for user_id,game_id in observers:
+        user = db.get_or_404(User, user_id)
+        user.update(description)
         
     db.session.commit()
     return redirect(request.referrer)
@@ -950,6 +1017,19 @@ class TmpBets:
             results.append((description, value, bet))
 
         return results
+    
+    def get_game_ids(self):
+        games_id = []
+        
+        if self.is_multiple_selected:
+            for game, _ in self.multiple:
+                if game.game_id not in games_id:
+                    games_id.append(game.game_id)
+        else:
+            games_id = self.simple
+        
+        return games_id        
+        
 
     def check_game_present(self, game_id):
         games_bets = self.multiple if self.is_multiple_selected else self.simple
