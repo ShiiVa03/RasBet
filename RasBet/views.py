@@ -339,7 +339,7 @@ def games(_type):
             game_status = "active"
         else:
             game_status = "suspended"
-
+            
         if not game_type.is_team_game:
             players_list = db.session.execute(
             f"SELECT * FROM no_team_game_player WHERE no_team_game_id = '{row.id}'").all()
