@@ -42,6 +42,14 @@ class User(db.Model):
     birthdate = db.Column(db.Date, nullable=False)
     balance = db.Column(db.Float, nullable=False, default=0)
     
+    def update(self, description):
+        notif = Notification(
+            user_id = self.id,
+            description = description,
+            read = False
+        )
+        db.session.add(notif)
+        db.session.commit()
 
 class Transaction(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -57,6 +65,10 @@ class Game(db.Model):
     game_type = db.Column(db.Enum(GameType), nullable=False)
     game_status = db.Column(db.Enum(GameState), nullable=False)
 
+
+class Observer(db.Model):
+    id_game = db.Column(db.Integer, db.ForeignKey(Game.id), primary_key=True)
+    id_user = db.Column(db.Integer, db.ForeignKey(User.id), primary_key=True)
 
 class TeamGame(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -98,3 +110,10 @@ class UserParcialBet(db.Model):
     bet_team = db.Column(db.Enum(TeamSide))
     bet_no_team = db.Column(db.ForeignKey(NoTeamGamePlayer.id))
     paid = db.Column(db.Boolean)
+
+
+class Notification(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.ForeignKey(User.id))
+    description = db.Column(db.String(200), nullable=False)
+    read = db.Column(db.Boolean, nullable=False)
