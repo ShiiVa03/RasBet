@@ -1,0 +1,25 @@
+<head>
+    <link rel="stylesheet" href="/static/style/notifs.css">
+    <link rel="stylesheet" type="text/css" href="/static/content/bootstrap.min.css" />
+</head>
+
+{%if notifications|length == 0 %}
+<div style="text-align:center;margin-top:5px">
+    Sem Notifica&ccedil;&otilde;es
+</div>
+
+{%else%}
+{% for n in notifications %}
+    <div style="border: 1px solid black; width:100%;margin-top:3px;"> 
+        <div style="width:100%">
+            <form action="/user/notif/{{ n.id }}/read" method="post" style="float:right">
+                <button class="close" type="submit">
+                    &times;
+                </button>
+            </form>
+        </div>
+        
+    {{ n.description }} 
+    </div>
+{%endfor%}
+{%endif%}

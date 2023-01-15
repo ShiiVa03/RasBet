@@ -15,7 +15,7 @@
 
 <body>
 
-    <div style="background-color:red" class="navbar navbar-inverse navbar-fixed-top"> 
+    <div style="background-color:red; width:100%" class="navbar navbar-inverse navbar-fixed-top">
         <div class="container">
 
             <div class="navbar-header">
@@ -38,12 +38,33 @@
                     <li><a style="color:white" href="{{ url_for('games', _type='basketball') }}">Basquetbol</a></li>
                     <li><a style="color:white" href="{{ url_for('games', _type='motogp') }}">MotoGP</a></li>
                 </ul>
+                {% if session.get('name') %}
+                {% if session.get('type') == "user" %}
+                <div class="wrap">
+                    <form action="/user/notifs" method="get" target="notificacoes" class="navbar-right">
+                        <button class="img-fluid" type="submit" onclick="showNotifs()" style="background-color:transparent; border:0px;margin-top:10px">
+                            <img width="25" height="25" src="https://media.discordapp.net/attachments/1017873426326765578/1064209944284516372/istockphoto-1306580044-612x612-removebg-preview.png?width=404&height=404" />
+                        </button>
+                    </form>
+                    <div class="inner_wrap">
+                        <iframe name="notificacoes" id="notificacoes" style="right:0;position:absolute;background-color:white; display:none;margin-right:5%"></iframe>
+                    </div>
+                </div>
+                
+                {%endif%}
+                {%endif%}
                 {% include 'account_access_partial.html' %}
+
             </div>
-
+            
         </div>
-    </div>
 
+           
+
+        
+
+    </div>
+    
     <div class="container body-content">
         {% block content %}{% endblock %}
         {% if  url_for('edit_account') in request.path or session['type'] == "especialista" or session['type'] == "admin" %}
@@ -57,7 +78,7 @@
                     <!-- if multiple bet is selected -->
                     {% if session['tmp_bets'].is_multiple_selected %}
                     <div>
-                        <form action="/bet/tmp/change_context" method="post" >
+                        <form action="/bet/tmp/change_context" method="post">
                             <input type="hidden" value="0" name="multiple" style="display:none" />
                             <button type="submit" style="border-radius: 15px; margin: 0 5%;float:left"> Simples </button>
                         </form>
@@ -197,10 +218,27 @@
     <script src="/static/scripts/bootstrap.js"></script>
     <script src="/static/scripts/respond.js"></script>
     <script>
+
+
         // Get the modal
         var bet = document.getElementById("placeBet");
 
         var btn = document.getElementById("apostarBtn");
+
+        var hidden = true;
+        var notifs = document.getElementById("notificacoes");
+
+        function showNotifs() {
+            
+            if (hidden) {
+                notifs.style.display = "block";
+                hidden = false;
+            }
+            else {
+                notifs.style.display = "none";
+                hidden = true;
+            }
+        }
 
         btn.onclick = function () {
             bet.style.display = "block";

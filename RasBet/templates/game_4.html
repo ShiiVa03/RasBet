@@ -126,6 +126,23 @@
                 <div id="myBtn-{{loop.index}}">
                     <h4 style="margin-top:1%"> {{game[0].description}}</h4>
                 </div>
+                <div>
+                    {% if session.get('name') %}
+                    {% if game[0].game_id in subscriptions %}
+                    <form action="/game/{{game[0].game_id}}/unsubscribe/" method="post">
+                        <button type="submit" style="background-color:red; border:0px">
+                            cancelar subscricao
+                        </button>
+                    </form>
+                    {%else%}
+                    <form action="/game/{{game[0].game_id}}/subscribe/" method="post">
+                        <button type="submit" style="background-color:green; border:0px">
+                            subscrever
+                        </button>
+                    </form>
+                    {%endif%}
+                    {%endif%}
+                </div>
                 <h4 style="color:gray"> {{ game[0].datetime.split(' ', 1)[0] }}  </h4>
                 {% if game[2] == "suspended" %}
                 <div style="width:100%; color:gray;">

@@ -328,11 +328,13 @@ def games(_type):
     _games = db.session.execute(
         f"SELECT * FROM {'no_' if not game_type.is_team_game else ''}team_game WHERE game_id IN (SELECT id FROM game WHERE game_type='{enum_game_type.name}' AND datetime >= DATETIME('now') AND game_status != 'closed')").all()
 
-    subscriptions = None
+    subscriptions = []
     if 'id' in session:
         user_id = session['id']        
-        subscriptions = db.session.execute(f"SELECT * FROM observer WHERE id_user = '{user_id}'").all() 
-       
+        subs = db.session.execute(f"SELECT * FROM observer WHERE id_user = '{user_id}'").all() 
+        subscriptions = [y for (y,_) in subs]
+        
+
     games = {row.game_id:row for row in _games}
     
     for row in _games:
@@ -367,11 +369,12 @@ def home():
     """Renders the home page."""
     _games = db.session.execute("SELECT * FROM team_game WHERE game_id IN (SELECT id FROM game WHERE date(datetime)=DATE('now') AND game_status != 'closed' AND game_type = 'football')").all()
 
-    subscriptions = None
+    subscriptions = []
     if 'id' in session:
         user_id = session['id']        
-        subscriptions = db.session.execute(f"SELECT * FROM observer WHERE id_user = '{user_id}'").all()   
-
+        subs = db.session.execute(f"SELECT * FROM observer WHERE id_user = '{user_id}'").all()   
+        subscriptions = [y for (y,_) in subs]
+        
     games = {row.game_id:row for row in _games}
     for row in _games:
         game = db.get_or_404(Game,row.game_id)
@@ -526,12 +529,12 @@ def user_get_notifs():
     
     user = db.get_or_404(User, session['id'])
     
-    notifs = db.session.execute(f"SELECT * FROM notifications WHERE user_id = '{user.id}' and read = 'False'")
-    
-    for notif in notifs:
-        notif.read = True
-
-    db.session.commit()
+    notifs = db.session.execute(f"SELECT * FROM notification WHERE user_id = '{user.id}' and read = 0").all()
+    print(notifs)
+    return render_template(
+        'notifs.html',
+        notifications = notifs
+    )
   
 
 
@@ -738,6 +741,7 @@ def subscribe(game_id):
     
     db.session.add(observer)
     db.session.commit()
+    return redirect(request.referrer)
 
 @app.post('/game/<game_id>/unsubscribe/')
 def unsubscribe(game_id):
@@ -750,7 +754,8 @@ def unsubscribe(game_id):
         abort(404, "Not subscribed")   
     
     db.session.execute(f"DELETE FROM observer WHERE id_game = {game_id} and id_user = {user_id}")
-    db.session.commit()    
+    db.session.commit() 
+    return redirect(request.referrer)
     
     
 @app.post('/bet/create/')
@@ -900,11 +905,11 @@ def change_odd(game_id):
         player.odd = new_odd
         
     observers = db.session.execute(f"SELECT * FROM observer where id_game='{game_id}'").all()
-    
-    for user_id,game_id in observers:
+
+    for game_id,user_id in observers:
         user = db.get_or_404(User, user_id)
         user.update(description)
-        
+
     db.session.commit()
     return redirect(request.referrer)
  
@@ -932,6 +937,13 @@ def update_game_state(game_id, state):
     db.session.commit()
     return redirect(request.referrer)
 
+@app.post('/user/notif/<id>/read')
+def read_notif(id):
+    user = db.get_or_404(User, session['id'])
+    
+    db.session.execute(f"UPDATE notification SET read = 1 WHERE user_id = {user.id} and id = {id}")
+    db.session.commit()
+    return redirect(request.referrer)
 
 class TmpBets:
     def __init__(self):
@@ -1021,14 +1033,14 @@ class TmpBets:
     def get_game_ids(self):
         games_id = []
         
-        if self.is_multiple_selected:
-            for game, _ in self.multiple:
+        if not self.is_multiple_selected:
+            for game, _ in self.simple:
                 if game.game_id not in games_id:
                     games_id.append(game.game_id)
         else:
-            games_id = self.simple
+            games_id = [x.game_id for x in self.multiple]
         
-        return games_id        
+        return games_id         
         
 
     def check_game_present(self, game_id):

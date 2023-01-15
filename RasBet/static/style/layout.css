@@ -11,6 +11,17 @@
     color: white;
 }
 
+.wrap {
+    text-align: center;
+    position: relative;
+}
+
+.inner_wrap {
+    position: absolute;
+    right:0;
+    margin-top:50px;
+}
+
 /* The Modal (background) */
 .modal {
     display: none; /* Hidden by default */
