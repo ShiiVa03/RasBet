@@ -284,6 +284,9 @@ def parse_jsons(games, type):
             db.session.commit()       
         else:
             if game_type.is_team_game:
+                description = ""
+                tm = db.session.execute(f"SELECT * FROM team_game WHERE game_id = {db_game.id}").first()
+                result = None
                 if game['scores']:
                     home_result, away_result = list(map(int, game['scores'].split('x')))
                     db_game.game_status = GameState.closed
@@ -295,12 +298,29 @@ def parse_jsons(games, type):
                     else:
                         if game_type.has_draws:
                             result = TeamSide.draw
+                    description = f"O jogo entre {tm.team_home} e {tm.team_away} terminou com o resultado {home_result} - {away_result}"
+                    observers = db.session.execute(f"SELECT * FROM observer where id_game='{db_game.id}'").all()
+
+                    for game_id,user_id in observers:
+                        user = db.get_or_404(User, user_id)
+                        user.update(description)
                 else:
                     result = TeamSide.undefined
+                if tm.result != result.name:
+                    db.session.execute(f"UPDATE team_game SET result = '{result.name}' WHERE game_id = {db_game.id}")
+                
             else:
                 if game['completed']:
                     no_team_game = db.session.execute(f"SELECT * FROM no_team_game WHERE game_id = '{db_game.id}'").first()
                     no_team_game_players = db.session.execute(f"SELECT * FROM no_team_game_player WHERE no_team_game_id = '{no_team_game.id}'").all()
+                    
+                    tm = db.session.execute(f"SELECT * FROM no_team_game WHERE game_id = {db_game.id}").first()
+                    description = f"O jogo {tm.description} terminou"
+                    observers = db.session.execute(f"SELECT * FROM observer where id_game='{db_game.id}'").all()
+
+                    for game_id,user_id in observers:
+                        user = db.get_or_404(User, user_id)
+                        user.update(description)
                 
                     for no_team_game_player in no_team_game_players:
                         db.session.execute(f"UPDATE no_team_game_player SET placement = '{placements[no_team_game_player.name]}' WHERE id = '{no_team_game_player.id}'")
@@ -530,7 +550,7 @@ def user_get_notifs():
     user = db.get_or_404(User, session['id'])
     
     notifs = db.session.execute(f"SELECT * FROM notification WHERE user_id = '{user.id}' and read = 0").all()
-    print(notifs)
+
     return render_template(
         'notifs.html',
         notifications = notifs
@@ -925,7 +945,7 @@ def update_game_state(game_id, state):
         except KeyError:
             abort(404, "Tipo de estado nao existente")
     
-    print(game_id)
+
 
     game_state = enum_game_state  
     game = db.get_or_404(Game, game_id)
@@ -934,6 +954,14 @@ def update_game_state(game_id, state):
         abort(404, "Não é possível mudar o estado do jogo para o mesmo")
     
     game.game_status = game_state
+    
+    description = f"Um jogo subscrito mudou o estado para {game_state.name}"
+    observers = db.session.execute(f"SELECT * FROM observer where id_game='{game_id}'").all()
+
+    for game_id,user_id in observers:
+        user = db.get_or_404(User, user_id)
+        user.update(description)
+        
     db.session.commit()
     return redirect(request.referrer)
 
@@ -1038,7 +1066,7 @@ class TmpBets:
                 if game.game_id not in games_id:
                     games_id.append(game.game_id)
         else:
-            games_id = [x.game_id for x in self.multiple]
+            games_id = [x.game_id for (x,y) in self.multiple]
         
         return games_id         
         
